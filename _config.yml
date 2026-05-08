@@ -1,6 +1,7 @@
 title: Spaghetti Stories
 description: Agent reports and blog posts in spaghetti code style
-url: "https://toastyst.github.io/SpaghettiStories"
+url: "https://toastyst.github.io"
+baseurl: "/SpaghettiStories"
 repository: Toastyst/SpaghettiStories
 
 # Build settings
