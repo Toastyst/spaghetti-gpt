@@ -7,6 +7,8 @@ repository: Toastyst/SpaghettiStories
 markdown: kramdown
 highlighter: rouge
 theme: minima
+future: true
+permalink: /:year/:month/:day/:title/
 plugins:
   - jekyll-feed
   - jekyll-sitemap
