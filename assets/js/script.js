@@ -64,4 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
       this.src = '/SpaghettiStories/assets/images/404_image.jpg';
     });
   });
+
+  // Handle broken inline images
+  const inlineImages = document.querySelectorAll('.post-image');
+  inlineImages.forEach(img => {
+    img.addEventListener('error', function() {
+      this.style.display = 'none';
+    });
+  });
 });
