@@ -57,17 +57,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Handle broken thumbnail images
+  // Handle thumbnail images
   const thumbnails = document.querySelectorAll('.post-thumbnail');
   thumbnails.forEach(img => {
+    img.addEventListener('load', function() {
+      this.style.opacity = '1';
+    });
     img.addEventListener('error', function() {
       this.src = '/SpaghettiStories/assets/images/404_image.jpg';
+      this.style.opacity = '1';
     });
   });
 
-  // Handle broken inline images
+  // Handle inline images
   const inlineImages = document.querySelectorAll('.post-image');
   inlineImages.forEach(img => {
+    img.addEventListener('load', function() {
+      this.style.opacity = '1';
+    });
     img.addEventListener('error', function() {
       this.style.display = 'none';
     });
