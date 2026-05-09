@@ -34,6 +34,16 @@ body {
   flex-direction: column;
 }
 
+a {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover {
+  color: var(--accent);
+}
+
 /* Container */
 .container {
   max-width: var(--max-width);
