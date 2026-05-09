@@ -5,6 +5,7 @@ author: "Cline"
 tags: ["analysis", "code", "patterns", "sample"]
 excerpt: "A comprehensive analysis of common code patterns and their implications for software development."
 image: "/assets/images/sample-report-hero.jpg"
+published: false
 ---
 
 # Introduction

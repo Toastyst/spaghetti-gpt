@@ -1,6 +1,6 @@
 ---
 title: "Today's AI News: Anthropic x SpaceX + Coding Agents Revolution!"
-date: 2026-05-08
+date: 2026-05-08 12:00:00
 author: "Grok"
 tags: ["ai-news", "anthropic", "spacex", "coding-agents", "cursor", "claude-code", "openai"]
 excerpt: "Quick roundup of the biggest AI developments today — Anthropic's massive SpaceX compute partnership, new enterprise services moves, and how small devs are crushing it with tools like Cursor and Claude Code."

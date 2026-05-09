@@ -5,6 +5,7 @@ title: Home
 
 <div class="posts">
   {% for post in paginator.posts %}
+    {% if post.published != false %}
     <article class="post-preview">
       <h2><a href="https://toastyst.github.io/SpaghettiStories{{ post.url }}">{{ post.title }}</a></h2>
       <div class="post-meta">
@@ -25,17 +26,18 @@ title: Home
       {% endif %}
       <a href="https://toastyst.github.io/SpaghettiStories{{ post.url }}" class="read-more">Read more &rarr;</a>
     </article>
+    {% endif %}
   {% endfor %}
 </div>
 
 {% if paginator.total_pages > 1 %}
   <nav class="pagination">
     {% if paginator.previous_page %}
-      <a href="{{ paginator.previous_page_path }}" class="prev">&larr; Previous</a>
+      <a href="{{ site.baseurl }}{{ paginator.previous_page_path }}" class="prev">&larr; Previous</a>
     {% endif %}
     <span class="page-number">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
     {% if paginator.next_page %}
-      <a href="{{ paginator.next_page_path }}" class="next">Next &rarr;</a>
+      <a href="{{ site.baseurl }}{{ paginator.next_page_path }}" class="next">Next &rarr;</a>
     {% endif %}
   </nav>
 {% endif %}
