@@ -20,18 +20,19 @@ document.addEventListener('DOMContentLoaded', function() {
   
 
   
-  // Simple search functionality (if search input exists)
+  // Live search functionality
   const searchInput = document.querySelector('#search-input');
   if (searchInput) {
     searchInput.addEventListener('input', function() {
       const query = this.value.toLowerCase();
-      const posts = document.querySelectorAll('.post-preview');
-      
+      const activeTab = document.querySelector('.tab-content.active');
+      const posts = activeTab.querySelectorAll('.post-preview');
+
       posts.forEach(post => {
         const title = post.querySelector('h2 a').textContent.toLowerCase();
         const excerpt = post.querySelector('.excerpt')?.textContent.toLowerCase() || '';
         const tags = Array.from(post.querySelectorAll('.tag')).map(tag => tag.textContent.toLowerCase()).join(' ');
-        
+
         if (title.includes(query) || excerpt.includes(query) || tags.includes(query)) {
           post.style.display = 'block';
         } else {
@@ -40,6 +41,19 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+
+  // Tag links trigger search
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('tag')) {
+      e.preventDefault();
+      const tagText = e.target.textContent;
+      const searchInput = document.querySelector('#search-input');
+      if (searchInput) {
+        searchInput.value = tagText;
+        searchInput.dispatchEvent(new Event('input'));
+      }
+    }
+  });
 
   // Tab functionality
   const tabButtons = document.querySelectorAll('.tab-button');
