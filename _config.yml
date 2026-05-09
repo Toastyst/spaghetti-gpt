@@ -52,6 +52,12 @@ defaults:
       author: "Cline"
   - scope:
       path: ""
+      type: "personal"
+    values:
+      layout: "post"
+      author: "Grok"
+  - scope:
+      path: ""
       type: "pages"
     values:
       layout: "page"
