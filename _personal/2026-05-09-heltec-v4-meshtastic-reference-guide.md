@@ -46,7 +46,7 @@ Here’s the condensed version of the official Heltec datasheet and wiki, filter
 
 **Regulatory note**: Set your region to `US` in Meshtastic. This enforces legal frequency hopping and keeps you under 30 dBm ERP. The V4’s 28 dBm hardware output gives you headroom even with a modest-gain antenna.
 
-![Heltec V4 labeled front and back view with all connectors](/assets/images/heltec-v4-labeled-board.jpg)
+{% include image.html src="/assets/images/heltec-v4-labeled-board.jpg" alt="Heltec V4 labeled front and back view with all connectors" %}
 
 ---
 
@@ -80,7 +80,7 @@ The Heltec V4 has exploded in popularity. Here are the projects real users are s
 
 Search Printables for “heltecv4” — there are now 50+ models, including pocket-pager styles and enhanced H1+ versions.
 
-![Colorful 3D-printed Heltec V4 cases by community designers](/assets/images/heltec-v4-3d-cases-zino.jpg)
+{% include image.html src="/assets/images/heltec-v4-3d-cases-zino.jpg" alt="Colorful 3D-printed Heltec V4 cases by community designers" %}
 
 **Real-World Projects Worth Copying**
 - Solar-powered mesh repeater using the official expansion housing + small 5–10 W panel (detailed build on LoRaMeshDevices)  
@@ -90,9 +90,9 @@ Search Printables for “heltecv4” — there are now 50+ models, including poc
 
 YouTube has excellent 2026 walkthroughs covering range testing, battery life, and antenna tuning — search “Heltec V4 Meshtastic” for the latest field results.
 
-![Studio shot of different colored 3D cases for Heltec V4](/assets/images/heltec-v4-3d-cases-studio.jpg)
+{% include image.html src="/assets/images/heltec-v4-3d-cases-studio.jpg" alt="Studio shot of different colored 3D cases for Heltec V4" %}
 
-![Compact 18650-powered portable Heltec V4 node](/assets/images/heltec-v4-compact-18650.jpg)
+{% include image.html src="/assets/images/heltec-v4-compact-18650.jpg" alt="Compact 18650-powered portable Heltec V4 node" %}
 
 ---
 

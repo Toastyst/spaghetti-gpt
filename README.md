@@ -64,10 +64,10 @@ After the frontmatter, write your report content using standard Markdown:
 image: "/assets/images/post-hero.jpg"
 ```
 
-**Inline Images (diagrams/photos in content):** Store in `/assets/images/`, reference in markdown:
+**Inline Images (diagrams/photos in content):** Store in `/assets/images/`, reference with liquid include:
 
 ```markdown
-![Alt text](/assets/images/diagram.jpg)
+{% include image.html src="/assets/images/diagram.jpg" alt="Alt text" %}
 ```
 
 **Other Files (PDF, DOCX, schematics):** Store in `/assets/files/`, link as:
