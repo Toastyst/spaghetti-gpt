@@ -4,16 +4,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Add loading animation for images
   const images = document.querySelectorAll('img');
-  
+
   images.forEach(img => {
-    img.style.opacity = '0';
     img.style.transition = 'opacity 0.3s ease';
-    
+
     img.addEventListener('load', function() {
       this.style.opacity = '1';
     });
-    
-    if (img.complete) {
+
+    if (img.complete && img.naturalHeight !== 0) {
       img.style.opacity = '1';
     }
   });

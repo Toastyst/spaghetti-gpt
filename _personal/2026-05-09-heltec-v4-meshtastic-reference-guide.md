@@ -9,8 +9,6 @@ image: "/assets/images/heltec-v4-hero.jpg"
 
 **Heltec V4 Meshtastic Guide: Build High-Power USA LoRa Nodes That Actually Perform in 2026**
 
-![Heltec WiFi LoRa 32 V4 multi-angle product view](/assets/images/heltec-v4-hero.jpg)
-
 The Heltec WiFi LoRa 32 V4 (often called Heltec V4) isn’t just another ESP32 board with a LoRa chip. It’s the device that finally gives serious US Meshtastic builders the power, memory, and solar-ready features they’ve been waiting for — all while staying well under the FCC’s 30 dBm ERP limit on the 902–928 MHz band.
 
 If you’ve been running V3 nodes and wondering why your range feels capped, or you’re building your first mesh from scratch, this guide gives you everything you need: official specs that actually matter, verified purchase links, the exact firmware settings for legal US operation, real community builds that work, and the best events to plug into the growing network.
