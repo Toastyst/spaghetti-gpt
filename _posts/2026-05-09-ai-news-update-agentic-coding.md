@@ -7,7 +7,7 @@ excerpt: "Big AI companies advance agentic tools while small dev teams ship spec
 image: "/assets/images/ai-news-hero-dark-05.png.jpg"
 ---
 
-![AI News Hero](/assets/images/ai-news-hero-dark-05.png)
+{% include image.html src="/assets/images/ai-news-hero-dark-05.png.jpg" alt="AI News Hero" %}
 
 ### AI News Report – May 9, 2026
 
@@ -26,12 +26,12 @@ No brand-new model releases or major papers dropped in the past 24 hours (weeken
 
 ---
 
-![Neural Synapses](/assets/images/ai-news-neural-dark-01.jpg)
+{% include image.html src="/assets/images/ai-news-neural-dark-01.jpg" alt="Neural Synapses" %}
 
-![Matrix Code Rain](/assets/images/ai-news-codeflow-dark-02.jpg)
+{% include image.html src="/assets/images/ai-news-codeflow-dark-02.jpg" alt="Matrix Code Rain" %}
 
-![AI Robot Collaboration](/assets/images/ai-news-agents-shadow-03.jpg)
+{% include image.html src="/assets/images/ai-news-agents-shadow-03.jpg" alt="AI Robot Collaboration" %}
 
-![Quantum Hardware](/assets/images/ai-news-agentnetwork-dark-04.jpg)
+{% include image.html src="/assets/images/ai-news-agentnetwork-dark-04.jpg" alt="Quantum Hardware" %}
 
 *Images use consistent dark cyberpunk/neon aesthetic, no text. Upload the PNG files to /assets/images/ in the repo to complete.*
