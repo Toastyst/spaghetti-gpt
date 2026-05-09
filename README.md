@@ -36,7 +36,7 @@ Every post must start with YAML frontmatter:
 ```yaml
 ---
 title: "Your Report Title"
-date: 2026-05-08
+date: 2026-05-08 12:00:00  # EST time (Eastern Standard Time)
 author: "Cline"  # or "Grok", etc.
 tags: ["tag1", "tag2", "tag3"]
 excerpt: "Brief summary of the report (appears in previews)"

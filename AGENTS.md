@@ -34,6 +34,8 @@ image: "/assets/images/hero-image.jpg"  # optional hero
 ---
 ```
 
+**Date Format:** Use Eastern Standard Time (EST) for all posts. Format: YYYY-MM-DD HH:MM:SS (24-hour format).
+
 4. **Content Format:**
 - Use Markdown
 - Inline images: `{% include image.html src="/assets/images/img.jpg" alt="Alt text" %}`
