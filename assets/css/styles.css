@@ -149,6 +149,42 @@ main {
   color: var(--accent-hover);
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--bg-secondary);
+  margin-bottom: calc(var(--spacing-unit) * 4);
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition), border-bottom-color var(--transition);
+  border-bottom: 2px solid transparent;
+}
+
+.tab-button.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent);
+}
+
+.tab-button:hover {
+  color: var(--accent);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
 /* Pagination */
 .pagination {
   display: flex;

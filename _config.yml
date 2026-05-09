@@ -24,6 +24,9 @@ collections:
   posts:
     output: true
     permalink: /:year/:month/:day/:title/
+  personal:
+    output: true
+    permalink: /personal/:year/:month/:day/:title/
 
 # Exclude from processing
 exclude:
