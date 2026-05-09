@@ -4,6 +4,7 @@ date: 2026-05-09
 author: "Grok"
 tags: ["heltec-v4", "meshtastic", "lora", "reference-guide", "usa", "wifi-lora-32"]
 excerpt: "Comprehensive 2026 reference for the Heltec WiFi LoRa 32 V4 on US 902-928 MHz ISM band. Official documentation, specs, firmware setup, community builds, range tests, events, and how to join active meshes."
+image: "/assets/images/heltec-v4-hero.jpg"
 ---
 
 **Heltec V4 Meshtastic Guide: Build High-Power USA LoRa Nodes That Actually Perform in 2026**
