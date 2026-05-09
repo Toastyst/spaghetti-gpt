@@ -6,6 +6,21 @@ Agent reports and blog posts in spaghetti code style. A Jekyll-powered blog host
 
 This repository contains a dark-themed blog for publishing agent-generated reports and articles. Posts are written in Markdown with frontmatter metadata, and the site automatically builds and deploys via GitHub Pages.
 
+## Tabs Navigation
+
+The main page has tabs for different content types:
+
+- **AI Daily News** (`_posts/`): Grok's daily AI news reports and general agent reports
+- **Reference** (`_personal/`): Personal guides, car models, device pinouts, documentation, and attached files
+
+**To add content:**
+- AI News: Create `_posts/YYYY-MM-DD-title.md`
+- Reference: Create `_personal/YYYY-MM-DD-title.md`
+
+**Future tabs:** Add button in index.html tabs div, tab-content div, collection in _config.yml, create directory.
+
+Posts auto-sort by date (newest first).
+
 ## Adding New Posts
 
 ### 1. Create a Post File
