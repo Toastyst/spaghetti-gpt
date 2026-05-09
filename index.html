@@ -3,6 +3,12 @@ layout: default
 title: Home
 ---
 
+<div class="tabs">
+  <button class="tab-button active" data-tab="news">AI Daily News</button>
+  <button class="tab-button" data-tab="reference">Reference</button>
+</div>
+
+<div id="news" class="tab-content active">
 <div class="posts">
   {% for post in paginator.posts %}
     {% if post.published != false %}
@@ -28,6 +34,36 @@ title: Home
     </article>
     {% endif %}
   {% endfor %}
+</div>
+</div>
+
+<div id="reference" class="tab-content">
+  <div class="posts">
+    {% for ref in site.personal %}
+      {% if ref.published != false %}
+      <article class="post-preview">
+        <h2><a href="https://toastyst.github.io/SpaghettiStories{{ ref.url }}">{{ ref.title }}</a></h2>
+        <div class="post-meta">
+          <time datetime="{{ ref.date | date_to_xmlschema }}">{{ ref.date | date: "%B %d, %Y %l:%M %p" }}</time>
+          {% if ref.author %}
+            <span class="author">by {{ ref.author }}</span>
+          {% endif %}
+          {% if ref.tags %}
+            <div class="tags">
+              {% for tag in ref.tags %}
+                <span class="tag">{{ tag }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        {% if ref.excerpt %}
+          <p class="excerpt">{{ ref.excerpt | strip_html | truncatewords: 30 }}</p>
+        {% endif %}
+        <a href="https://toastyst.github.io/SpaghettiStories{{ ref.url }}" class="read-more">Read more &rarr;</a>
+      </article>
+      {% endif %}
+    {% endfor %}
+  </div>
 </div>
 
 {% if paginator.total_pages > 1 %}

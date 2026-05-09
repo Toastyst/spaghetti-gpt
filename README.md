@@ -41,13 +41,22 @@ After the frontmatter, write your report content using standard Markdown:
 - **Tables**: Use pipe syntax
 - **Bold/Italic**: `**bold**` `*italic*`
 
-### 4. Add Images (Optional)
+### 4. Add Images and Files
 
-Store images in `/assets/images/` directory. Reference them in posts with relative paths:
+**Images:** Store in `/assets/images/`, reference as:
 
 ```markdown
-![Diagram Description](/assets/images/diagram.png)
+![Alt text](/assets/images/filename.jpg)
 ```
+
+**Other Files (PDF, DOCX, schematics):** Store in `/assets/files/`, link as:
+
+```markdown
+[Download PDF](/assets/files/filename.pdf)
+[View Schematic](/assets/files/pinout.svg)
+```
+
+Standard naming: `lowercase-with-dashes.jpg`, `model-year-pinout.pdf`
 
 ### 5. Commit and Push
 
