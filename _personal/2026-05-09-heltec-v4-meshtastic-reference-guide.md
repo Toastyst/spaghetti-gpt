@@ -8,6 +8,8 @@ excerpt: "Comprehensive 2026 reference for the Heltec WiFi LoRa 32 V4 on US 902-
 
 **Heltec V4 Meshtastic Guide: Build High-Power USA LoRa Nodes That Actually Perform in 2026**
 
+![Heltec WiFi LoRa 32 V4 multi-angle product view](/assets/images/heltec-v4-hero.jpg)
+
 The Heltec WiFi LoRa 32 V4 (often called Heltec V4) isn’t just another ESP32 board with a LoRa chip. It’s the device that finally gives serious US Meshtastic builders the power, memory, and solar-ready features they’ve been waiting for — all while staying well under the FCC’s 30 dBm ERP limit on the 902–928 MHz band.
 
 If you’ve been running V3 nodes and wondering why your range feels capped, or you’re building your first mesh from scratch, this guide gives you everything you need: official specs that actually matter, verified purchase links, the exact firmware settings for legal US operation, real community builds that work, and the best events to plug into the growing network.
@@ -45,6 +47,8 @@ Here’s the condensed version of the official Heltec datasheet and wiki, filter
 
 **Regulatory note**: Set your region to `US` in Meshtastic. This enforces legal frequency hopping and keeps you under 30 dBm ERP. The V4’s 28 dBm hardware output gives you headroom even with a modest-gain antenna.
 
+![Heltec V4 labeled front and back view with all connectors](/assets/images/heltec-v4-labeled-board.jpg)
+
 ---
 
 ## How to Get Started (Flashing in Under 10 Minutes)
@@ -77,6 +81,8 @@ The Heltec V4 has exploded in popularity. Here are the projects real users are s
 
 Search Printables for “heltecv4” — there are now 50+ models, including pocket-pager styles and enhanced H1+ versions.
 
+![Colorful 3D-printed Heltec V4 cases by community designers](/assets/images/heltec-v4-3d-cases-zino.jpg)
+
 **Real-World Projects Worth Copying**
 - Solar-powered mesh repeater using the official expansion housing + small 5–10 W panel (detailed build on LoRaMeshDevices)  
 - High-gain 915 MHz external antenna setups for rural coverage (users report 2–3× range improvement)  
@@ -84,6 +90,10 @@ Search Printables for “heltecv4” — there are now 50+ models, including poc
 - MeshCore firmware experiments (Heltec officially supports it on V4 as an alternative to Meshtastic)
 
 YouTube has excellent 2026 walkthroughs covering range testing, battery life, and antenna tuning — search “Heltec V4 Meshtastic” for the latest field results.
+
+![Studio shot of different colored 3D cases for Heltec V4](/assets/images/heltec-v4-3d-cases-studio.jpg)
+
+![Compact 18650-powered portable Heltec V4 node](/assets/images/heltec-v4-compact-18650.jpg)
 
 ---
 
@@ -115,3 +125,10 @@ Whether you’re upgrading an old V3 node, building your first solar repeater, o
 Grab a Heltec V4 from Rokland or Heltec’s US warehouse, flash it with the official web flasher, and drop into the Discord. Then tell me in the comments: **What’s your first Heltec V4 project — portable go-bag, rooftop repeater, or GPS tracker?**
 
 The mesh is waiting. Let’s make it stronger.
+
+---
+
+**Image Credits**  
+- Hero and labeled board photos: [Heltec Automation](https://heltec.org/project/wifi-lora-32-v4/)  
+- Colorful 3D-printed cases: Designed by [Adi CEvil](https://www.printables.com/model/1460642-3d-printed-enclosure-for-heltec-v4gps) on Printables  
+- Studio and compact case photos: Community designs on Printables
