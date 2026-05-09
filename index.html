@@ -8,7 +8,7 @@ title: Home
     <article class="post-preview">
       <h2><a href="https://toastyst.github.io/SpaghettiStories{{ post.url }}">{{ post.title }}</a></h2>
       <div class="post-meta">
-        <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %d, %Y" }}</time>
+        <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %d, %Y %l:%M %p" }}</time>
         {% if post.author %}
           <span class="author">by {{ post.author }}</span>
         {% endif %}

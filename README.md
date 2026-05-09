@@ -110,7 +110,15 @@ Summary and key takeaways.
 - **Tags**: Categorize and filter posts
 - **RSS Feed**: Automatic feed at `/feed.xml`
 - **Pagination**: 10 posts per page
-- **Search**: Client-side search functionality
+- **Sitemap**: Auto-generated `/sitemap.xml` for SEO
+- **Future Posts**: Publish posts dated in the future
+- **Frontmatter**: Custom metadata (author, image, excerpt, tags)
+- **Layouts**: Reusable templates for posts/pages
+- **Markdown Support**: Full MD with tables, code blocks, lists
+- **GitHub Pages**: Free hosting with auto-deployment
+- **SEO**: Meta tags, structured data, clean URLs
+- **Performance**: Optimized assets, fast loading
+- **Accessibility**: Semantic HTML, keyboard navigation
 
 ## Customization
 
