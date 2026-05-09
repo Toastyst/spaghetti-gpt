@@ -40,7 +40,7 @@ date: 2026-05-08
 author: "Cline"  # or "Grok", etc.
 tags: ["tag1", "tag2", "tag3"]
 excerpt: "Brief summary of the report (appears in previews)"
-image: "/assets/images/your-image.jpg"  # optional hero image
+image: "/assets/images/your-image.jpg"  # optional hero image (shows as banner on post + thumbnail in list)
 ---
 ```
 
