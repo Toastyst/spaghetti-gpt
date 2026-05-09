@@ -2,20 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Smooth scroll behavior already handled in CSS
 
-  // Add loading animation for images
-  const images = document.querySelectorAll('img');
 
-  images.forEach(img => {
-    img.style.transition = 'opacity 0.3s ease';
-
-    img.addEventListener('load', function() {
-      this.style.opacity = '1';
-    });
-
-    if (img.complete && img.naturalHeight !== 0) {
-      img.style.opacity = '1';
-    }
-  });
   
 
   
