@@ -70,6 +70,13 @@ image: "/assets/images/post-hero.jpg"
 {% include image.html src="/assets/images/diagram.jpg" alt="Alt text" %}
 ```
 
+**Image Path Rules:**
+- Always use `/assets/images/filename.ext` (no repo name prefix like "SpaghettiStories/")
+- Use unique names: `YYYY-MM-DD-post-slug-seq.jpg` (e.g., `2026-05-09-ai-news-1.jpg`)
+- Check existing: Run `list_files assets/images` before referencing
+- Extensions: .jpg for photos, .png for diagrams
+- Upload manually after post creation
+
 **Other Files (PDF, DOCX, schematics):** Store in `/assets/files/`, link as:
 
 ```markdown
