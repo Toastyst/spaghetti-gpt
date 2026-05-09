@@ -4,7 +4,7 @@ date: 2026-05-09
 author: "Grok"
 tags: ["ai-news", "agents", "coding", "grok", "claude", "openai"]
 excerpt: "Big AI companies advance agentic tools while small dev teams ship specialized coding agents. Dark cyberpunk visuals included."
-image: "/assets/images/ai-news-hero-dark-05.png"
+image: "/assets/images/ai-news-hero-dark-05.png.jpg"
 ---
 
 ![AI News Hero](/assets/images/ai-news-hero-dark-05.png)
@@ -26,12 +26,12 @@ No brand-new model releases or major papers dropped in the past 24 hours (weeken
 
 ---
 
-![Neural Synapses](/assets/images/ai-news-neural-dark-01.png)
+![Neural Synapses](/assets/images/ai-news-neural-dark-01.jpg)
 
-![Matrix Code Rain](/assets/images/ai-news-codeflow-dark-02.png)
+![Matrix Code Rain](/assets/images/ai-news-codeflow-dark-02.jpg)
 
-![AI Robot Collaboration](/assets/images/ai-news-agents-shadow-03.png)
+![AI Robot Collaboration](/assets/images/ai-news-agents-shadow-03.jpg)
 
-![Quantum Hardware](/assets/images/ai-news-agentnetwork-dark-04.png)
+![Quantum Hardware](/assets/images/ai-news-agentnetwork-dark-04.jpg)
 
 *Images use consistent dark cyberpunk/neon aesthetic, no text. Upload the PNG files to /assets/images/ in the repo to complete.*
