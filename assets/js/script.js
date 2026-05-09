@@ -48,12 +48,20 @@ document.addEventListener('DOMContentLoaded', function() {
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
       const tab = button.dataset.tab;
-      
+
       tabButtons.forEach(btn => btn.classList.remove('active'));
       button.classList.add('active');
-      
+
       tabContents.forEach(content => content.classList.remove('active'));
       document.getElementById(tab).classList.add('active');
+    });
+  });
+
+  // Handle broken thumbnail images
+  const thumbnails = document.querySelectorAll('.post-thumbnail');
+  thumbnails.forEach(img => {
+    img.addEventListener('error', function() {
+      this.src = '/SpaghettiStories/assets/images/404_image.jpg';
     });
   });
 });
