@@ -27,9 +27,7 @@ title: Home
           </div>
         {% endif %}
       </div>
-      {% if post.image %}
-        <img src="{{ post.image | prepend: site.baseurl }}" alt="{{ post.title }}" class="post-thumbnail">
-      {% endif %}
+      <img src="{% if post.image %}{{ post.image | prepend: site.baseurl }}{% else %}{{ '/assets/images/404_image.jpg' | prepend: site.baseurl }}{% endif %}" alt="{{ post.title }}" class="post-thumbnail">
       {% if post.excerpt %}
         <p class="excerpt">{{ post.excerpt | strip_html | truncatewords: 30 }}</p>
       {% endif %}
@@ -59,9 +57,7 @@ title: Home
             </div>
           {% endif %}
         </div>
-        {% if ref.image %}
-          <img src="{{ ref.image | prepend: site.baseurl }}" alt="{{ ref.title }}" class="post-thumbnail">
-        {% endif %}
+        <img src="{% if ref.image %}{{ ref.image | prepend: site.baseurl }}{% else %}{{ '/assets/images/404_image.jpg' | prepend: site.baseurl }}{% endif %}" alt="{{ ref.title }}" class="post-thumbnail">
         {% if ref.excerpt %}
           <p class="excerpt">{{ ref.excerpt | strip_html | truncatewords: 30 }}</p>
         {% endif %}
