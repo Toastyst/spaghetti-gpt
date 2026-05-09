@@ -31,18 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Add a simple fade-in effect for the header
-  const header = document.querySelector('header');
-  if (header) {
-    header.style.opacity = '0';
-    header.style.transform = 'translateY(-20px)';
-    header.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-    
-    setTimeout(() => {
-      header.style.opacity = '1';
-      header.style.transform = 'translateY(0)';
-    }, 100);
-  }
+
   
   // Simple search functionality (if search input exists)
   const searchInput = document.querySelector('#search-input');
