@@ -58,10 +58,16 @@ After the frontmatter, write your report content using standard Markdown:
 
 ### 4. Add Images and Files
 
-**Images:** Store in `/assets/images/`, reference as:
+**Hero Image (post banner):** Add to frontmatter for large banner on post page and thumbnail in list:
+
+```yaml
+image: "/assets/images/post-hero.jpg"
+```
+
+**Inline Images (diagrams/photos in content):** Store in `/assets/images/`, reference in markdown:
 
 ```markdown
-![Alt text](/assets/images/filename.jpg)
+![Alt text](/assets/images/diagram.jpg)
 ```
 
 **Other Files (PDF, DOCX, schematics):** Store in `/assets/files/`, link as:

@@ -19,6 +19,12 @@ layout: default
     </div>
   </header>
 
+  {% if page.image %}
+    <div class="hero-image-container">
+      <img src="{{ page.image | prepend: site.baseurl }}" alt="{{ page.title }}" class="hero-image">
+    </div>
+  {% endif %}
+
   <div class="post-content">
     {{ content }}
   </div>
