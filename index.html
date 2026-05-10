@@ -15,9 +15,9 @@ title: Home
 
 <div id="news" class="tab-content active">
 <div class="posts">
-  {% for post in paginator.posts %}
+    {% for post in paginator.posts %}
     {% if post.published != false %}
-      {% include post-preview.html item=post collection='news' %}
+    {% include post-preview.html item=post %}
     {% endif %}
   {% endfor %}
 </div>
