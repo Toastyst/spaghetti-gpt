@@ -147,8 +147,6 @@ main {
   float: left;
   margin-right: calc(var(--spacing-unit) * 3);
   margin-bottom: calc(var(--spacing-unit) * 2);
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
 .tags {
@@ -363,8 +361,6 @@ main {
 }
 
 .post-image {
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
 .post-content table {

@@ -89,26 +89,5 @@ document.addEventListener('DOMContentLoaded', function() {
   handleHash(); // On load
   window.addEventListener('hashchange', handleHash); // On hash change
 
-  // Handle thumbnail images
-  const thumbnails = document.querySelectorAll('.post-thumbnail');
-  thumbnails.forEach(img => {
-    img.addEventListener('load', function() {
-      this.style.opacity = '1';
-    });
-    img.addEventListener('error', function() {
-      this.src = '/SpaghettiStories/assets/images/404_image.jpg';
-      this.style.opacity = '1';
-    });
-  });
 
-  // Handle inline images
-  const inlineImages = document.querySelectorAll('.post-image');
-  inlineImages.forEach(img => {
-    img.addEventListener('load', function() {
-      this.style.opacity = '1';
-    });
-    img.addEventListener('error', function() {
-      this.style.display = 'none';
-    });
-  });
 });
