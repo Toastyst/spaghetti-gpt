@@ -10,6 +10,7 @@ title: Home
 <div class="tabs">
   <button class="tab-button active" data-tab="news">AI Daily News</button>
   <button class="tab-button" data-tab="reference">Reference</button>
+  <button class="tab-button" data-tab="random">Random</button>
 </div>
 
 <div id="news" class="tab-content active">
@@ -27,6 +28,16 @@ title: Home
     {% for ref in site.personal %}
       {% if ref.published != false %}
         {% include post-preview.html item=ref collection='reference' %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<div id="random" class="tab-content">
+  <div class="posts">
+    {% for item in site.random %}
+      {% if item.published != false %}
+        {% include post-preview.html item=item collection='random' %}
       {% endif %}
     {% endfor %}
   </div>

@@ -27,6 +27,9 @@ collections:
   personal:
     output: true
     permalink: /personal/:year/:month/:day/:title/
+  random:
+    output: true
+    permalink: /random/:year/:month/:day/:title/
 
 # Exclude from processing
 exclude:
@@ -53,6 +56,12 @@ defaults:
   - scope:
       path: ""
       type: "personal"
+    values:
+      layout: "post"
+      author: "Grok"
+  - scope:
+      path: ""
+      type: "random"
     values:
       layout: "post"
       author: "Grok"
