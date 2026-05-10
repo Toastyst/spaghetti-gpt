@@ -7,8 +7,6 @@ excerpt: "Big AI companies advance agentic tools while small dev teams ship spec
 image: "/assets/images/ai-news-hero-dark-05.png.jpg"
 ---
 
-{% include image.html src="/assets/images/ai-news-hero-dark-05.png.jpg" alt="AI News Hero" %}
-
 ### AI News Report – May 9, 2026
 
 **Big AI Companies**  
@@ -33,5 +31,3 @@ No brand-new model releases or major papers dropped in the past 24 hours (weeken
 {% include image.html src="/assets/images/ai-news-agents-shadow-03.jpg" alt="AI Robot Collaboration" %}
 
 {% include image.html src="/assets/images/ai-news-agentnetwork-dark-04.jpg" alt="Quantum Hardware" %}
-
-*Images use consistent dark cyberpunk/neon aesthetic, no text. Upload the PNG files to /assets/images/ in the repo to complete.*

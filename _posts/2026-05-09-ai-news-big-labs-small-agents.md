@@ -9,9 +9,7 @@ image: "/assets/images/ai-neural-hero.jpg"
 
 **AI News Report: May 9, 2026 – Big Labs & Indie Agent Devs**
 
-{% include image.html src="/assets/images/ai-neural-hero.jpg" alt="Neural Network Hero" %}
-
-**Big AI Companies Push Agentic Frontiers**  
+**Big AI Companies Push Agentic Frontiers**
 Anthropic launched specialized financial agents for Wall Street workflows and locked in major SpaceX compute deals plus edge infrastructure. OpenAI advanced GPT-5.5 capabilities while Google rolled out new agent tools (including coding-focused ones) to close the gap. xAI and peers joined U.S. government frontier-model security testing programs. The agentic pivot is in full swing—autonomous systems handling real multi-step tasks across finance, code, and operations.
 
 **Small Coding Agent Devs & Open Frameworks Surge**  
@@ -25,5 +23,3 @@ Big labs supply the heavy infrastructure and broad models; small coding-agent de
 {% include image.html src="/assets/images/ai-digital-brain.jpg" alt="Digital Brain Core" %}
 
 {% include image.html src="/assets/images/ai-code-swarm.jpg" alt="Code Swarm Developers" %}
-
-*All images generated with consistent dark cyberpunk/neon aesthetic, no text. Ready for the SpaghettiStories dark-themed blog.*
