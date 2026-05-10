@@ -1,5 +1,5 @@
 <article class="post-preview">
-  <h2><a href="{{ include.item.url }}">{{ include.item.title }}</a></h2>
+  <h2><a href="{{ site.baseurl }}{{ include.item.url }}">{{ include.item.title }}</a></h2>
   <div class="post-meta">
     <time datetime="{{ include.item.date | date_to_xmlschema }}">{{ include.item.date | date: "%B %d, %Y %l:%M %p" }}</time>
     {% if include.item.author %}
@@ -17,5 +17,5 @@
   {% if include.item.excerpt %}
     <p class="excerpt">{{ include.item.excerpt | strip_html | truncatewords: 30 }}</p>
   {% endif %}
-  <a href="{{ include.item.url }}" class="read-more">Read more &rarr;</a>
+  <a href="{{ site.baseurl }}{{ include.item.url }}" class="read-more">Read more &rarr;</a>
 </article>

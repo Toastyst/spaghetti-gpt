@@ -8,9 +8,8 @@ title: Home
 </div>
 
 <div class="tabs">
-  {% for tab in site.tabs %}
-    <button class="tab-button{% if forloop.first %} active{% endif %}" data-tab="{{ tab.id }}">{{ tab.name }}</button>
-  {% endfor %}
+  <button class="tab-button active" data-tab="news">AI Daily News</button>
+  <button class="tab-button" data-tab="reference">Reference</button>
 </div>
 
 <div id="news" class="tab-content active">
