@@ -2,3 +2,45 @@
 layout: default
 title: Home
 ---
+
+<div class="search-container">
+  <input type="text" id="search-input" placeholder="Search posts...">
+</div>
+
+<div class="tabs">
+  {% for tab in site.tabs %}
+    <button class="tab-button{% if forloop.first %} active{% endif %}" data-tab="{{ tab.id }}">{{ tab.name }}</button>
+  {% endfor %}
+</div>
+
+<div id="news" class="tab-content active">
+<div class="posts">
+  {% for post in paginator.posts %}
+    {% if post.published != false %}
+      {% include post-preview.html item=post collection='news' %}
+    {% endif %}
+  {% endfor %}
+</div>
+</div>
+
+<div id="reference" class="tab-content">
+  <div class="posts">
+    {% for ref in site.personal %}
+      {% if ref.published != false %}
+        {% include post-preview.html item=ref collection='reference' %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{% if paginator.total_pages > 1 %}
+  <nav class="pagination">
+    {% if paginator.previous_page %}
+      <a href="{{ site.baseurl }}{{ paginator.previous_page_path }}" class="prev">&larr; Previous</a>
+    {% endif %}
+    <span class="page-number">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
+    {% if paginator.next_page %}
+      <a href="{{ site.baseurl }}{{ paginator.next_page_path }}" class="next">Next &rarr;</a>
+    {% endif %}
+  </nav>
+{% endif %}
