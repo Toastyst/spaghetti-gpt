@@ -26,7 +26,7 @@ title: Home
          {% if post.tags %}
            <div class="tags">
              {% for tag in post.tags %}
-               <a href="/#news&search={{ tag | slugify }}" class="tag">{{ tag }}</a>
+               <a href="{{ site.baseurl }}/#news&search={{ tag | slugify }}" class="tag">{{ tag }}</a>
              {% endfor %}
            </div>
          {% endif %}
@@ -56,7 +56,7 @@ title: Home
           {% if ref.tags %}
             <div class="tags">
               {% for tag in ref.tags %}
-                <a href="/#reference&search={{ tag | slugify }}" class="tag">{{ tag }}</a>
+                <a href="{{ site.baseurl }}/#reference&search={{ tag | slugify }}" class="tag">{{ tag }}</a>
               {% endfor %}
             </div>
           {% endif %}
