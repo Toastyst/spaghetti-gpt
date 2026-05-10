@@ -42,6 +42,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Tab functionality
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const tab = button.dataset.tab;
+
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      tabContents.forEach(content => content.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+    });
+  });
+
   // Handle hash for tag links
   function handleHash() {
     const hash = window.location.hash.substring(1);
@@ -65,22 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   handleHash(); // On load
   window.addEventListener('hashchange', handleHash); // On hash change
-
-  // Tab functionality
-  const tabButtons = document.querySelectorAll('.tab-button');
-  const tabContents = document.querySelectorAll('.tab-content');
-
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const tab = button.dataset.tab;
-
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
-
-      tabContents.forEach(content => content.classList.remove('active'));
-      document.getElementById(tab).classList.add('active');
-    });
-  });
 
   // Handle thumbnail images
   const thumbnails = document.querySelectorAll('.post-thumbnail');
