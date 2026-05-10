@@ -43,23 +43,28 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Handle hash for tag links
-  const hash = window.location.hash.substring(1);
-  if (hash) {
-    const [tab, search] = hash.split('&search=');
-    if (tab && search) {
-      // Set tab
-      const tabButton = document.querySelector(`[data-tab="${tab}"]`);
-      if (tabButton) {
-        tabButton.click();
-      }
-      // Set search
-      const searchInput = document.querySelector('#search-input');
-      if (searchInput) {
-        searchInput.value = decodeURIComponent(search);
-        searchInput.dispatchEvent(new Event('input'));
+  function handleHash() {
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+      const [tab, search] = hash.split('&search=');
+      if (tab && search) {
+        // Set tab
+        const tabButton = document.querySelector(`[data-tab="${tab}"]`);
+        if (tabButton) {
+          tabButton.click();
+        }
+        // Set search
+        const searchInput = document.querySelector('#search-input');
+        if (searchInput) {
+          searchInput.value = decodeURIComponent(search);
+          searchInput.dispatchEvent(new Event('input'));
+        }
       }
     }
   }
+
+  handleHash(); // On load
+  window.addEventListener('hashchange', handleHash); // On hash change
 
   // Tab functionality
   const tabButtons = document.querySelectorAll('.tab-button');
