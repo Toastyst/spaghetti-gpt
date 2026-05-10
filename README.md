@@ -44,6 +44,13 @@ image: "/assets/images/your-image.jpg"  # optional hero image (shows as banner o
 ---
 ```
 
+## Image Guidelines for Posts
+
+- **Preferred Ratio**: 4:3 landscape (e.g., 800x600, 1200x900)
+- **Hero Image**: Use in frontmatter `image:` for post banner and list thumbnail
+- **Inline Images**: Place throughout body with `{% include image.html src="/assets/images/diagram.jpg" alt="Alt text" %}`
+- **Note**: Images must be placed throughout the body (not at the end)
+
 ### 3. Write Content in Markdown
 
 After the frontmatter, write your report content using standard Markdown:
