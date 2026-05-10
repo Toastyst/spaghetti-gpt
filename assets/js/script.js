@@ -55,6 +55,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
       tabContents.forEach(content => content.classList.remove('active'));
       document.getElementById(tab).classList.add('active');
+
+      // Clear search when switching tabs
+      const searchInput = document.querySelector('#search-input');
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+      }
     });
   });
 
