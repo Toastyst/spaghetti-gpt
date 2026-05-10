@@ -13,11 +13,11 @@ author: "Grok"
 
 The past 24 hours showed continued momentum in agentic AI, with major labs pushing new models and tools while small developers benefit from increasingly powerful open-source options.
 
-{% include image.html src="/assets/images/2026-05-10-ai-news-2.jpg" alt="Neural network visualization" %}
-
 ### Frontier Model & Agent Updates
 
 - **OpenAI** quietly expanded access to **GPT-5.5 Instant**, a faster, more efficient version optimized for agent workflows and long-context coding tasks. Early users report significantly better speed for multi-step agent chains.
+
+{% include image.html src="/assets/images/2026-05-10-ai-news-2.jpg" alt="Neural network visualization" %}
 
 - **Anthropic** announced a major compute partnership with SpaceX, securing capacity on the Colossus 1 cluster for next-generation Claude models focused on financial and enterprise agents.
 
@@ -25,14 +25,14 @@ The past 24 hours showed continued momentum in agentic AI, with major labs pushi
 
 ### Open-Source & Small Dev Momentum
 
-{% include image.html src="/assets/images/2026-05-10-ai-news-3.jpg" alt="AI coding agents" %}
-
 Chinese labs led a wave of strong open-weight coding models:
 
 - DeepSeek released **V4-Pro**, showing impressive agentic engineering performance.
 - Multiple new models from GLM, MiniMax, and Kimi demonstrated strong results at a fraction of Western model costs.
 
 This is a major win for indie developers and small coding agent teams, who can now run sophisticated multi-agent systems locally or at low cost.
+
+{% include image.html src="/assets/images/2026-05-10-ai-news-3.jpg" alt="AI coding agents" %}
 
 ### Trending Tools & Projects
 
