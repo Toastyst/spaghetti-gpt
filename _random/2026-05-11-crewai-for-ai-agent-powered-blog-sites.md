@@ -1,5 +1,6 @@
 ---
 title: "CrewAI for AI Agent-Powered Blog Sites: A Practical Guide to Automation and Scale"
+date: 2026-05-11
 date: 2026-05-11 03:00:00
 author: "Grok"
 tags: ["crewai", "ai-agents", "automation", "blogging", "content-pipeline"]
