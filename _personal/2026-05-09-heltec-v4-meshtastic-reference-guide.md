@@ -44,7 +44,7 @@ Here’s the condensed version of the official Heltec datasheet and wiki, filter
 
 **Critical USA buying tip**: Make sure you order the **902–928 MHz high-power variant**. Some early stock was 863–870 MHz only. Available from [Rokland](https://store.rokland.com/products/heltec-wifi-lora-32v4-esp32s3-sx1262-lora-node-meshtastic-lorawan), [Amazon single](https://www.amazon.com/dp/B0FXX88NKP?tag=spaghettistor-20), or [Amazon 2-pack kit](https://a.co/d/0eTAbCZO?tag=spaghettistor-20).
 
-**Regulatory note**: Set your region to `US` in Meshtastic. This enforces legal frequency hopping and keeps you under FCC limits per Part 15.247 (30 dBm conducted; EIRP up to 36 dBm with ≤6 dBi antennas). The V4’s 28 dBm hardware output gives you headroom even with a modest-gain antenna. [FCC 15.247](https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-15/subpart-C/subject-group-ECFR2f2e5828339709e/section-15.247)
+**Regulatory note**: Set your region to `US` in Meshtastic. This enforces legal frequency hopping and keeps you under FCC limits per Part 15.247 (30 dBm conducted; EIRP up to 36 dBm with ≤6 dBi antennas). The V4’s 28 dBm hardware output gives you headroom even with a modest-gain antenna. [FCC 15.247](https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-15/subpart-C/section-15.247)
 
 {% include image.html src="/assets/images/heltec-v4-labeled-board.jpg" alt="Heltec V4 labeled front and back view with all connectors" %}
 
