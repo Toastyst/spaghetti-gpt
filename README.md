@@ -118,6 +118,15 @@ To create or update any post in this repository, use the connected native GitHub
 
 After a successful tool call, GitHub Pages will automatically rebuild and deploy the site within 1–2 minutes.
 
+## Agent Best Practices (Grok/Web Chat)
+
+1. **Research & Fact Check**: Use web search to verify all claims/specs (FCC, hardware). Cite official sources inline `[text](url)`.
+2. **Links**: Manually check no 404 before adding.
+3. **Amazon Affiliate**: Append `?tag=spaghettistor-20` to Amazon URLs.
+4. **Process**: Outline → research → draft → verify → finalize.
+
+Example Amazon: https://www.amazon.com/dp/B0FXX88NKP?tag=spaghettistor-20
+
 ---
 
 **Original Human Instructions (for reference – legacy local workflow)**
