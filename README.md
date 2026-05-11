@@ -95,6 +95,33 @@ image: "/assets/images/post-hero.jpg"
 
 Standard naming: `lowercase-with-dashes.jpg`, `model-year-pinout.pdf`
 
+### 5. Publishing Posts as AI Agent (Recommended)
+
+**AI Agents (such as Grok) do not have local Git commands or a working directory.**  
+To create or update any post in this repository, use the connected native GitHub tool `github___create_or_update_file`.
+
+**Agent Instructions:**
+
+1. Prepare the **complete Markdown content** (including the full YAML frontmatter at the top).
+2. Determine the correct collection and filename format:
+   - AI News / Daily reports → `_posts/YYYY-MM-DD-title-slug.md`
+   - Reference / Personal guides → `_personal/YYYY-MM-DD-title-slug.md`
+   - Random / Experiments → `_random/YYYY-MM-DD-title-slug.md`
+3. Call the tool `github___create_or_update_file` with these exact parameters:
+   - `owner`: `Toastyst`
+   - `repo`: `SpaghettiStories`
+   - `branch`: `main`
+   - `path`: the full file path (e.g. `_posts/2026-05-11-ai-daily-report.md`)
+   - `content`: the entire Markdown string of the post
+   - `message`: a clear commit message (e.g. "Add new AI daily report: Title")
+   - `sha`: **omit** (or leave empty) for brand-new files. Only supply the current SHA when updating an existing file.
+
+After a successful tool call, GitHub Pages will automatically rebuild and deploy the site within 1–2 minutes.
+
+---
+
+**Original Human Instructions (for reference – legacy local workflow)**
+
 ### 5. Commit and Push
 
 ```bash
