@@ -9,7 +9,7 @@ image: "/assets/images/heltec-v4-hero.jpg"
 
 **Heltec V4 Meshtastic Guide: Build High-Power USA LoRa Nodes That Actually Perform in 2026**
 
-The Heltec WiFi LoRa 32 V4 (often called Heltec V4) isn’t just another ESP32 board with a LoRa chip. It’s the device that finally gives serious US Meshtastic builders the power, memory, and solar-ready features they’ve been waiting for — all while staying well under the FCC’s 30 dBm ERP limit on the 902–928 MHz band.
+The Heltec WiFi LoRa 32 V4 (often called Heltec V4) isn’t just another ESP32 board with a LoRa chip. It’s the device that finally gives serious US Meshtastic builders the power, memory, and solar-ready features they’ve been waiting for — all while staying well under FCC Part 15.247 limits (30 dBm conducted power / 36 dBm EIRP with 6 dBi antennas) on the 902–928 MHz band.
 
 If you’ve been running V3 nodes and wondering why your range feels capped, or you’re building your first mesh from scratch, this guide gives you everything you need: official specs that actually matter, verified purchase links, the exact firmware settings for legal US operation, real community builds that work, and the best events to plug into the growing network.
 
@@ -19,7 +19,7 @@ If you’ve been running V3 nodes and wondering why your range feels capped, or 
 
 Most LoRa boards sold in the US are either under-powered or require awkward hacks to hit decent range. The Heltec V4 solves both problems out of the box.
 
-It ships with a **Semtech SX1262 + external power amplifier** (GC1109 or KCT8103L) that delivers a clean **28 dBm** output. That’s close enough to the legal 30 dBm ERP ceiling that you’ll see real-world gains — especially when paired with a good 915 MHz external antenna. Community range tests consistently show the V4 punching farther than V3 nodes on the same preset and location.
+It ships with a **Semtech SX1262 + external power amplifier** (GC1109 or KCT8103L) that delivers a clean **28 dBm** output. That’s close enough to the legal 36 dBm EIRP ceiling (30 dBm conducted + 6 dBi) that you’ll see real-world gains — especially when paired with a good 915 MHz external antenna. Community range tests consistently show the V4 punching farther than V3 nodes on the same preset and location.
 
 Add in 2 MB of PSRAM, a proper solar input header, optional Quectel L76K GNSS, and an on-board 0.96" OLED that’s actually readable outdoors, and you have a node that can serve as a portable go-bag unit, a rooftop repeater, or a GPS beacon without compromise.
 
@@ -44,7 +44,7 @@ Here’s the condensed version of the official Heltec datasheet and wiki, filter
 
 **Critical USA buying tip**: Make sure you order the **902–928 MHz high-power variant**. Some early stock was 863–870 MHz only. Available from [Rokland](https://store.rokland.com/products/heltec-wifi-lora-32v4-esp32s3-sx1262-lora-node-meshtastic-lorawan), [Amazon single](https://www.amazon.com/dp/B0FXX88NKP?tag=spaghettistor-20), or [Amazon 2-pack kit](https://a.co/d/0eTAbCZO?tag=spaghettistor-20).
 
-**Regulatory note**: Set your region to `US` in Meshtastic. This enforces legal frequency hopping and keeps you under 30 dBm ERP. The V4’s 28 dBm hardware output gives you headroom even with a modest-gain antenna.
+**Regulatory note**: Set your region to `US` in Meshtastic. This enforces legal frequency hopping and keeps you under FCC limits per Part 15.247 (30 dBm conducted; EIRP up to 36 dBm with ≤6 dBi antennas). The V4’s 28 dBm hardware output gives you headroom even with a modest-gain antenna. [FCC 15.247](https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-15/subpart-C/subject-group-ECFR2f2e5828339709e/section-15.247)
 
 {% include image.html src="/assets/images/heltec-v4-labeled-board.jpg" alt="Heltec V4 labeled front and back view with all connectors" %}
 
