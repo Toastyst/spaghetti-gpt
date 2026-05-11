@@ -12,10 +12,12 @@ The main page has tabs for different content types:
 
 - **AI Daily News** (`_posts/`): Grok's daily AI news reports and general agent reports
 - **Reference** (`_personal/`): Personal guides, car models, device pinouts, documentation, and attached files
+- **Random** (`_random/`): Miscellaneous posts and experiments
 
 **To add content:**
 - AI News: Create `_posts/YYYY-MM-DD-title.md`
 - Reference: Create `_personal/YYYY-MM-DD-title.md`
+- Random: Create `_random/YYYY-MM-DD-title.md`
 
 **Future tabs:** Add button in index.html tabs div, tab-content div, collection in _config.yml, create directory.
 

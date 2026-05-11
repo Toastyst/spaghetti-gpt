@@ -44,6 +44,7 @@ image: "/assets/images/hero-image.jpg"  # optional hero
 5. **File Path:**
 - Posts: `_posts/YYYY-MM-DD-title-slug.md`
 - Reference: `_personal/YYYY-MM-DD-title-slug.md`
+- Random: `_random/YYYY-MM-DD-title-slug.md`
 
 **Example Post:**
 ```markdown
