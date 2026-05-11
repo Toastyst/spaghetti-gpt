@@ -59,7 +59,7 @@ CrewAI rests on four fundamental building blocks that map directly to real-world
 
 These primitives let you prototype a two-agent research-and-write crew in under 30 minutes and evolve it into a resilient, observable pipeline.
 
-{% include image.html src="/assets/images/2026-05-11-crewai-pipeline.jpg" alt="Abstract dark-mode visualization of the CrewAI multi-agent blogging workflow with flowing connections between research, writing, editing, and publishing stages" %}
+![CrewAI Blogging Pipeline - Research to Publisher workflow](https://raw.githubusercontent.com/Toastyst/SpaghettiStories/main/assets/images/2026-05-11-crewai-pipeline.jpg)
 
 ## Mapping a Blogging Team to CrewAI Agents
 
@@ -77,7 +77,7 @@ The most effective way to automate a blog is to mirror a real editorial staff wi
 
 This team can be wrapped in a single Crew (sequential or hierarchical) or, better, organized within a Flow for production resilience.
 
-{% include image.html src="/assets/images/2026-05-11-crewai-agents.jpg" alt="Dark-mode illustration of a collaborative team of specialized AI agents ready for automated content creation" %}
+![Specialized AI Agents Team for automated blogging](https://raw.githubusercontent.com/Toastyst/SpaghettiStories/main/assets/images/2026-05-11-crewai-agents.jpg)
 
 ## Step-by-Step – Setting Up Your First Blogging Crew
 
