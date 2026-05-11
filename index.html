@@ -35,7 +35,7 @@ title: Home
 
 <div id="random" class="tab-content">
   <div class="posts">
-    {% for item in site.random %}
+    {% for item in site.random | sort: 'date' | reverse %}
       {% if item.published != false %}
         {% include post-preview.html item=item collection='random' %}
       {% endif %}
