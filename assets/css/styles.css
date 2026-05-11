@@ -299,6 +299,18 @@ main {
   margin-bottom: calc(var(--spacing-unit) * 4);
 }
 
+.post-content a {
+  color: var(--accent);
+}
+
+.post-content a:hover {
+  color: var(--accent-hover);
+}
+
+.post-content a:visited {
+  color: var(--accent);
+}
+
 .post-content h1,
 .post-content h2,
 .post-content h3,
