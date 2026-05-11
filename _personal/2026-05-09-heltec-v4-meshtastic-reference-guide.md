@@ -42,7 +42,7 @@ Here’s the condensed version of the official Heltec datasheet and wiki, filter
 | **GNSS / Extras**        | 1.25-8P header for Quectel L76K + accelerometer | Easy position-aware nodes or trackers |
 | **Size / Weight**        | 51.7 × 25.4 × 10.7 mm, ~35 g                    | Fits in compact 3D-printed cases or existing V3 enclosures |
 
-**Critical USA buying tip**: Make sure you order the **902–928 MHz high-power variant**. Some early stock was 863–870 MHz only. Both Rokland and Heltec’s US warehouse currently ship the correct version.
+**Critical USA buying tip**: Make sure you order the **902–928 MHz high-power variant**. Some early stock was 863–870 MHz only. Available from [Rokland](https://store.rokland.com/products/heltec-wifi-lora-32v4-esp32s3-sx1262-lora-node-meshtastic-lorawan), [Amazon single](https://www.amazon.com/dp/B0FXX88NKP?tag=spaghettistor-20), or [Amazon 2-pack kit](https://a.co/d/0eTAbCZO?tag=spaghettistor-20).
 
 **Regulatory note**: Set your region to `US` in Meshtastic. This enforces legal frequency hopping and keeps you under 30 dBm ERP. The V4’s 28 dBm hardware output gives you headroom even with a modest-gain antenna.
 
@@ -52,11 +52,14 @@ Here’s the condensed version of the official Heltec datasheet and wiki, filter
 
 ## How to Get Started (Flashing in Under 10 Minutes)
 
-1. Go to **[flasher.meshtastic.org](https://flasher.meshtastic.org/)**  
-2. Select **Heltec V4** from the device list  
-3. Choose the latest stable firmware (≥2.7.20)  
-4. **Full erase** recommended on first flash  
-5. Connect via USB-C, hit “Flash,” and wait for the progress bar
+1. **Attach the LoRa antenna** (915 MHz, IPEX connector) **before connecting USB/power**. Transmitting without an antenna will damage the TX power amplifier (PA).  
+2. Go to **[flasher.meshtastic.org](https://flasher.meshtastic.org/)**  
+3. Select **Heltec V4** from the device list  
+4. Choose the latest stable firmware (≥2.7.20)  
+5. **Full erase** recommended on first flash  
+6. Connect via USB-C, hit "Flash," and wait for the progress bar
+
+**Note:** For more details, see the [Heltec V4 hardware docs](https://meshtastic.org/docs/hardware/devices/heltec-automation/lora32/).
 
 Once flashed, set:
 - **Region**: US  
@@ -78,12 +81,12 @@ The Heltec V4 has exploded in popularity. Here are the projects real users are s
 - IP65 outdoor mounting block by dchidelf — ideal for fixed solar repeaters on rooftops or towers  
 - Minimalist no-screw 18650 case by PERFstroy — great for pocket-sized portable nodes
 
-Search Printables for “heltecv4” — there are now 50+ models, including pocket-pager styles and enhanced H1+ versions.
+Search Printables for “heltecv4” [here](https://www.printables.com/search/models?q=heltecv4) — there are now 50+ models, including pocket-pager styles and enhanced H1+ versions.
 
 {% include image.html src="/assets/images/heltec-v4-3d-cases-zino.jpg" alt="Colorful 3D-printed Heltec V4 cases by community designers" %}
 
 **Real-World Projects Worth Copying**
-- Solar-powered mesh repeater using the official expansion housing + small 5–10 W panel (detailed build on LoRaMeshDevices)  
+- Solar-powered mesh repeater using the official expansion housing + small 5–10 W panel ([detailed build on LoRaMeshDevices](https://www.lorameshdevices.com/blog/meshtastic/exploring-the-heltec-v4-the-next-generation-of-meshtastic-nodes.html))
 - High-gain 915 MHz external antenna setups for rural coverage (users report 2–3× range improvement)  
 - GPS position beacons for hiking groups or vehicle tracking  
 - MeshCore firmware experiments (Heltec officially supports it on V4 as an alternative to Meshtastic)
@@ -101,9 +104,9 @@ YouTube has excellent 2026 walkthroughs covering range testing, battery life, an
 Hardware is only half the story. The real power of Meshtastic comes from the people running nodes near you.
 
 **Must-Join Hubs**
-- Official Meshtastic Discord (~49k members) — #hardware channel for V4-specific questions  
-- r/meshtastic on Reddit — daily build photos and troubleshooting  
-- Local groups directory: meshtastic.org/docs/community/local-groups/ (dozens of active US meshes with their own Discords and node maps)
+- [Official Meshtastic Discord](https://discord.gg/Meshtastic) (~49k members) — #hardware channel for V4-specific questions
+- [r/meshtastic](https://www.reddit.com/r/meshtastic/) on Reddit — daily build photos and troubleshooting
+- [Local groups directory](https://meshtastic.org/docs/community/local-groups/) (dozens of active US meshes with their own Discords and node maps)
 
 **2026 Events Worth Attending**
 - Pacificon (West Coast) — dedicated Meshtastic track with live demos and Bay Area mesh groups  

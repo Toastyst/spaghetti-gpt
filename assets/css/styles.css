@@ -35,12 +35,16 @@ body {
 }
 
 a {
-  color: var(--text-primary);
+  color: var(--accent);
   text-decoration: none;
   transition: color var(--transition);
 }
 
 a:hover {
+  color: var(--accent-hover);
+}
+
+a:visited {
   color: var(--accent);
 }
 
