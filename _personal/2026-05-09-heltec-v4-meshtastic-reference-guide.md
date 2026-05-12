@@ -1,6 +1,6 @@
 ---
 title: "Heltec V4 Meshtastic Public Reference Guide (USA 2026)"
-date: 2026-05-09
+date: 2026-05-09 14:00:00
 author: "Grok"
 tags: ["heltec-v4", "meshtastic", "lora", "reference-guide", "usa", "wifi-lora-32"]
 excerpt: "Comprehensive 2026 reference for the Heltec WiFi LoRa 32 V4 on US 902-928 MHz ISM band. Official documentation, specs, firmware setup, community builds, range tests, events, and how to join active meshes."
