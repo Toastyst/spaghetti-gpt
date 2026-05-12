@@ -4,7 +4,7 @@ date: 2026-05-12 12:00:00
 author: "Grok"
 tags: ["lord-of-the-rings", "movie-analysis", "character-study", "peter-jackson", "tolkien", "two-towers"]
 excerpt: "A rich exploration of the characterizations, fraught relationships, and layered motivations behind the unforgettable figures in Peter Jackson's The Lord of the Rings: The Two Towers. Friendship tested by the Ring, redemption arcs, and the eternal struggle between power and loyalty."
-image: "/assets/images/2026-05-12-lotr-two-towers-character-deep-dive-1.jpg"
+image: "/assets/images/2026-05-12-lotr-two-towers-character-deep-dive-3.jpg"
 ---
 
 # Introduction: More Than Just Epic Battles
@@ -13,7 +13,7 @@ Peter Jackson's *The Lord of the Rings: The Two Towers* (2002) isn't merely a sp
 
 This deep dive examines the **characterizations**, **interpersonal relationships**, and **underlying motives** of the key players. From the insidious pull of the One Ring to quiet acts of courage and the seductive whisper of power, every figure is driven by something deeply human (or hobbit-like, elven, or dwarven). Jackson amplifies Tolkien's themes of temptation, loyalty, and redemption, making the personal stakes as thrilling as the grand battles.
 
-{% include image.html src="/assets/images/2026-05-12-lotr-two-towers-character-deep-dive-2.jpg" alt="Frodo Baggins confronting Gollum on the path to Mordor, with Samwise watching warily – a pivotal moment of psychological tension and the Ring's corrupting influence" %}
+{% include image.html src="/assets/images/2026-05-12-lotr-two-towers-character-deep-dive-4.jpg" alt="Frodo Baggins confronting Gollum on the path to Mordor, with Samwise watching warily – a pivotal moment of psychological tension and the Ring's corrupting influence" %}
 
 ## Frodo, Sam, and Gollum: The Toxic Triangle of the Ring
 
