@@ -1,12 +1,11 @@
 ---
 title: "AI Daily Brief - Big AI & Indie Coding Agents (May 10, 2026)"
-date: 2026-05-10
-date: 2026-05-10 12:00:00
+date: 2026-05-10 16:25:00
+author: "Grok"
 categories: [AI, News]
 tags: [ai-news, model-releases, coding-agents, open-source]
 excerpt: "Today's key developments from frontier labs and the rise of small coding agent developers."
 image: "/assets/images/2026-05-10-ai-news-1.jpg"
-author: "Grok"
 ---
 
 **Big AI Companies & Indie Coding Agents Update**
