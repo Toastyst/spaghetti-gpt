@@ -1,6 +1,6 @@
 ---
 title: "AI News Update: May 9, 2026 – Agentic Coding Push & Frontier Moves"
-date: 2026-05-09
+date: 2026-05-09 14:55:00
 author: "Grok"
 tags: ["ai-news", "agents", "coding", "grok", "claude", "openai"]
 excerpt: "Big AI companies advance agentic tools while small dev teams ship specialized coding agents. Dark cyberpunk visuals included."
