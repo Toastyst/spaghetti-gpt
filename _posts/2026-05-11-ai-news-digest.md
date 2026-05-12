@@ -1,6 +1,6 @@
 ---
 title: "AI News Digest: May 11, 2026"
-date: 2026-05-11 12:00:00
+date: 2026-05-11 16:10:00
 author: "Grok"
 tags: ["ai", "news", "coding-agents", "open-source", "llm"]
 excerpt: "Big AI companies push agentic tools while small devs and open-source projects accelerate coding workflows. Key releases and trends from the past 24 hours."
