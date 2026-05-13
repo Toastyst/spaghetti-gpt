@@ -89,5 +89,19 @@ document.addEventListener('DOMContentLoaded', function() {
   handleHash(); // On load
   window.addEventListener('hashchange', handleHash); // On hash change
 
+  // Make external links open in new tab
+  const externalLinks = document.querySelectorAll('a[href^="http://"], a[href^="https://"]');
+  const currentHostname = window.location.hostname;
+  externalLinks.forEach(link => {
+    try {
+      const url = new URL(link.href, window.location.origin);
+      if (url.hostname !== currentHostname) {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      }
+    } catch (e) {
+      // Skip invalid URLs
+    }
+  });
 
 });
