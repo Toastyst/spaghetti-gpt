@@ -30,6 +30,9 @@ collections:
   random:
     output: true
     permalink: /random/:year/:month/:day/:title/
+  vibe101:
+    output: true
+    permalink: /vibe101/:title/
 
 # Exclude from processing
 exclude:
@@ -62,6 +65,12 @@ defaults:
   - scope:
       path: ""
       type: "random"
+    values:
+      layout: "post"
+      author: "Grok"
+  - scope:
+      path: ""
+      type: "vibe101"
     values:
       layout: "post"
       author: "Grok"
