@@ -19,7 +19,7 @@
 - Postgres integration: Attached
 - AUTH_SECRET: Set
 - Attempting fresh deployment from current main to pick up latest detemplated code + env vars
-- "User not found" errors still occurring on previous deployment
+- "User not found" errors still occurring on previous deployment (In progress)
 
 ## Features
 
