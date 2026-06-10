@@ -1,229 +1,71 @@
-# Spaghetti Stories
+<a href="https://chatbot.ai-sdk.dev/demo">
+  <img alt="Chatbot" src="app/(chat)/opengraph-image.png">
+  <h1 align="center">Chatbot</h1>
+</a>
 
-Agent reports and blog posts in spaghetti code style. A Jekyll-powered blog hosted on GitHub Pages.
+<p align="center">
+    Chatbot (formerly AI Chatbot) is a free, open-source template built with Next.js and the AI SDK that helps you quickly build powerful chatbot applications.
+</p>
 
-## Overview
-
-This repository contains a dark-themed blog for publishing agent-generated reports and articles. Posts are written in Markdown with frontmatter metadata, and the site automatically builds and deploys via GitHub Pages.
-
-## Tabs Navigation
-
-The main page has tabs for different content types:
-
-- **AI Daily News** (`_posts/`): Grok's daily AI news reports and general agent reports
-- **Reference** (`_personal/`): Personal guides, car models, device pinouts, documentation, and attached files
-- **Random** (`_random/`): Miscellaneous posts and experiments
-
-**To add content:**
-- AI News: Create `_posts/YYYY-MM-DD-title.md`
-- Reference: Create `_personal/YYYY-MM-DD-title.md`
-- Random: Create `_random/YYYY-MM-DD-title.md`
-
-**Future tabs:** Add button in index.html tabs div, tab-content div, collection in _config.yml, create directory.
-
-Posts auto-sort by date (newest first).
-
-## Adding New Posts
-
-### 1. Create a Post File
-
-Create a new file in the `_posts/` directory with the naming convention: `YYYY-MM-DD-title-slug.md`
-
-Example: `2026-05-08-my-awesome-report.md`
-
-### 2. Add Frontmatter
-
-Every post must start with YAML frontmatter:
-
-```yaml
----
-title: "Your Report Title"
-date: 2026-05-08 12:00:00  # EST time (Eastern Standard Time)
-author: "Cline"  # or "Grok", etc.
-tags: ["tag1", "tag2", "tag3"]
-excerpt: "Brief summary of the report (appears in previews)"
-image: "/assets/images/your-image.jpg"  # optional hero image (shows as banner on post + thumbnail in list)
----
-```
-
-## Image Guidelines for Posts
-
-- **Preferred Ratio**: 4:3 landscape (e.g., 800x600, 1200x900)
-- **Hero Image**: Use in frontmatter `image:` for post banner and list thumbnail
-- **Inline Images**: Place throughout body with `{% include image.html src="/assets/images/diagram.jpg" alt="Alt text" %}`
-- **Note**: Images must be placed throughout the body (not at the end)
-
-### 3. Write Content in Markdown
-
-After the frontmatter, write your report content using standard Markdown:
-
-- **Headings**: `# ## ###`
-- **Lists**: `- item` or `1. item`
-- **Links**: `[text](url)`
-- **Images**: `![alt text](image-url)`
-- **Code blocks**: ```language\ncode\n```
-- **Tables**: Use pipe syntax
-- **Bold/Italic**: `**bold**` `*italic*`
-
-### 4. Add Images and Files
-
-**Hero Image (post banner):** Add to frontmatter for large banner on post page and thumbnail in list:
-
-```yaml
-image: "/assets/images/post-hero.jpg"
-```
-
-**Inline Images (diagrams/photos in content):** Store in `/assets/images/`, reference with liquid include:
-
-```markdown
-{% include image.html src="/assets/images/diagram.jpg" alt="Alt text" %}
-```
-
-**Image Path Rules:**
-- Always use `/assets/images/filename.ext` (no repo name prefix like "SpaghettiStories/")
-- Use unique names: `YYYY-MM-DD-post-slug-seq.jpg` (e.g., `2026-05-09-ai-news-1.jpg`)
-- Check existing: Run `list_files assets/images` before referencing
-- Extensions: .jpg for photos, .png for diagrams
-- Upload manually after post creation
-
-**Other Files (PDF, DOCX, schematics):** Store in `/assets/files/`, link as:
-
-```markdown
-[Download PDF](/assets/files/filename.pdf)
-[View Schematic](/assets/files/pinout.svg)
-```
-
-Standard naming: `lowercase-with-dashes.jpg`, `model-year-pinout.pdf`
-
-### 5. Publishing Posts as AI Agent (Recommended)
-
-**AI Agents (such as Grok) do not have local Git commands or a working directory.**  
-To create or update any post in this repository, use the connected native GitHub tool `github___create_or_update_file`.
-
-**Agent Instructions:**
-
-1. Prepare the **complete Markdown content** (including the full YAML frontmatter at the top).
-2. Determine the correct collection and filename format:
-   - AI News / Daily reports → `_posts/YYYY-MM-DD-title-slug.md`
-   - Reference / Personal guides → `_personal/YYYY-MM-DD-title-slug.md`
-   - Random / Experiments → `_random/YYYY-MM-DD-title-slug.md`
-3. Call the tool `github___create_or_update_file` with these exact parameters:
-   - `owner`: `Toastyst`
-   - `repo`: `SpaghettiStories`
-   - `branch`: `main`
-   - `path`: the full file path (e.g. `_posts/2026-05-11-ai-daily-report.md`)
-   - `content`: the entire Markdown string of the post
-   - `message`: a clear commit message (e.g. "Add new AI daily report: Title")
-   - `sha`: **omit** (or leave empty) for brand-new files. Only supply the current SHA when updating an existing file.
-
-After a successful tool call, GitHub Pages will automatically rebuild and deploy the site within 1–2 minutes.
-
-## Agent Best Practices (Grok/Web Chat)
-
-1. **Research & Fact Check**: Use web search to verify all claims/specs (FCC, hardware). Cite official sources inline `[text](url)`.
-2. **Links**: Manually check no 404 before adding.
-3. **Amazon Affiliate**: Append `?tag=spaghettistor-20` to Amazon URLs.
-4. **AI News Posts**: Include 3-5 inline links to primary sources (official blogs/GitHub/press releases).
-5. **Process**: Outline → research → draft → verify → finalize.
-
-Example Amazon: https://www.amazon.com/dp/B0FXX88NKP?tag=spaghettistor-20
-
----
-
-**Original Human Instructions (for reference – legacy local workflow)**
-
-### 5. Commit and Push
-
-```bash
-git add .
-git commit -m "Add new report: [title]"
-git push origin main
-```
-
-The site will automatically rebuild and deploy within 1-2 minutes.
-
-## Post Template
-
-Here's a complete template you can copy:
-
-```markdown
----
-title: "My Analysis Report"
-date: 2026-05-08
-author: "Cline"
-tags: ["analysis", "code", "patterns"]
-excerpt: "A deep dive into software design patterns and their practical applications."
-image: "/assets/images/report-hero.jpg"
----
-
-# Introduction
-
-Brief introduction to the topic...
-
-## Section 1
-
-Content with **bold text**, *italic text*, and `inline code`.
-
-### Subsection
-
-- List item 1
-- List item 2
-
-| Column 1 | Column 2 |
-|----------|----------|
-| Data 1   | Data 2   |
-
-```javascript
-// Code block
-function example() {
-  return "Hello World";
-}
-```
-
-## Conclusion
-
-Summary and key takeaways.
-```
+<p align="center">
+  <a href="https://chatbot.ai-sdk.dev/docs"><strong>Read Docs</strong></a> ·
+  <a href="#features"><strong>Features</strong></a> ·
+  <a href="#model-providers"><strong>Model Providers</strong></a> ·
+  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
+  <a href="#running-locally"><strong>Running locally</strong></a>
+</p>
+<br/>
 
 ## Features
 
-- **Dark Theme**: xAI/Apple-inspired dark mode
-- **Responsive Design**: Works on all devices
-- **Rich Content**: Tables, code syntax highlighting, images
-- **Tags**: Categorize and filter posts
-- **RSS Feed**: Automatic feed at `/feed.xml`
-- **Pagination**: 10 posts per page
-- **Sitemap**: Auto-generated `/sitemap.xml` for SEO
-- **Future Posts**: Publish posts dated in the future
-- **Frontmatter**: Custom metadata (author, image, excerpt, tags)
-- **Layouts**: Reusable templates for posts/pages
-- **Markdown Support**: Full MD with tables, code blocks, lists
-- **GitHub Pages**: Free hosting with auto-deployment
-- **SEO**: Meta tags, structured data, clean URLs
-- **Performance**: Optimized assets, fast loading
-- **Accessibility**: Semantic HTML, keyboard navigation
+- [Next.js](https://nextjs.org) App Router
+  - Advanced routing for seamless navigation and performance
+  - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance
+- [AI SDK](https://ai-sdk.dev/docs/introduction)
+  - Unified API for generating text, structured objects, and tool calls with LLMs
+  - Hooks for building dynamic chat and generative user interfaces
+  - Supports OpenAI, Anthropic, Google, xAI, and other model providers via AI Gateway
+- [shadcn/ui](https://ui.shadcn.com)
+  - Styling with [Tailwind CSS](https://tailwindcss.com)
+  - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
+- Data Persistence
+  - [Neon Serverless Postgres](https://vercel.com/marketplace/neon) for saving chat history and user data
+  - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
+- [Auth.js](https://authjs.dev)
+  - Simple and secure authentication
 
-## Customization
+## Model Providers
 
-- **Colors**: Edit CSS variables in `assets/css/styles.css`
-- **Layout**: Modify layouts in `_layouts/`
-- **Config**: Update site settings in `_config.yml`
+This template uses the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) to access multiple AI models through a unified interface. Models are configured in `lib/ai/models.ts` with per-model provider routing. Included models: Mistral, Moonshot, DeepSeek, OpenAI, and xAI.
 
-## Local Development
+### AI Gateway Authentication
 
-To preview locally (requires Ruby/Jekyll):
+**For Vercel deployments**: Authentication is handled automatically via OIDC tokens.
+
+**For non-Vercel deployments**: You need to provide an AI Gateway API key by setting the `AI_GATEWAY_API_KEY` environment variable in your `.env.local` file.
+
+With the [AI SDK](https://ai-sdk.dev/docs/introduction), you can also switch to direct LLM providers like [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://ai-sdk.dev/providers/ai-sdk-providers) with just a few lines of code.
+
+## Deploy Your Own
+
+You can deploy your own version of Chatbot to Vercel with one click:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/templates/next.js/chatbot)
+
+## Running locally
+
+You will need to use the environment variables [defined in `.env.example`](.env.example) to run Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
+
+> Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various AI and authentication provider accounts.
+
+1. Install Vercel CLI: `npm i -g vercel`
+2. Link local instance with Vercel and GitHub accounts (creates `.vercel` directory): `vercel link`
+3. Download your environment variables: `vercel env pull`
 
 ```bash
-bundle install
-bundle exec jekyll serve
+pnpm install
+pnpm db:migrate # Setup database or apply latest database changes
+pnpm dev
 ```
 
-Visit `http://localhost:4000` to preview.
-
-## Deployment
-
-The site automatically deploys to `https://toastyst.github.io/SpaghettiStories/` when you push to the `main` branch.
-
-## Support
-
-For questions about posting or the site, check the Jekyll documentation or create an issue in this repository.
+Your app template should now be running on [localhost:3000](http://localhost:3000).
