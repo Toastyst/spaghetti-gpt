@@ -14,9 +14,12 @@
 </p>
 <br/>
 
-## Status
+## Current Status (June 10, 2026)
 
-**Vercel Deployment**: Connected to this repo. Latest code (detemplated chatbot) is being deployed. Production URL: https://spaghetti-gpt-ethansnapp-9725s-projects.vercel.app (or custom domain).
+- Postgres integration: Attached
+- AUTH_SECRET: Set
+- Attempting fresh deployment from current main to pick up latest detemplated code + env vars
+- "User not found" errors still occurring on previous deployment
 
 ## Features
 
@@ -32,26 +35,15 @@
 
 This project is linked to Vercel GitHub integration for automatic deploys on push to `main`.
 
-To manually trigger or check:
-- Go to Vercel dashboard > Projects > spaghetti-gpt
-- Or use connected tools to redeploy.
+## Environment Setup
 
-## Environment Setup (for full functionality)
-
-Required Vercel integrations (add via dashboard):
-1. **Vercel Postgres** - Create database, attach to project, run migrations (`pnpm db:migrate` or equivalent).
-2. **Vercel Blob** - Enable storage, set `BLOB_READ_WRITE_TOKEN`.
-3. **Vercel KV / Redis** (if used for caching/sessions).
-4. **AI Gateway** (recommended for unified access) - Enable in project settings.
-
-Set these in Vercel Project Settings > Environment Variables:
-- `AUTH_SECRET` (generate with `openssl rand -base64 32`)
-- Provider keys: `OPENROUTER_API_KEY` or `OPENAI_API_KEY`, etc. (or rely on AI Gateway + OIDC)
-- `VERCEL_AI_GATEWAY_ENABLED=true` (optional)
-- Database and storage URLs from integrations.
+Required:
+- Vercel Postgres (attached)
+- AUTH_SECRET (set)
+- AI provider key (e.g. OPENROUTER_API_KEY)
 
 ## Running locally
 
 Copy `.env.example` to `.env.local`, fill keys, `pnpm install`, `pnpm dev`.
 
-> Customized from Vercel Chatbot template for Spaghetti-GPT use case (June 2026).
+> Customized from Vercel Chatbot template for Spaghetti-GPT use case.
