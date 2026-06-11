@@ -1,11 +1,12 @@
 // Focused list of free / high-quality OpenRouter models for testing
-export const DEFAULT_CHAT_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
+// Restricted to the 6 models requested to reduce bugs and only enable image support where supported
+export const DEFAULT_CHAT_MODEL = "openai/gpt-oss-120b:free";
 
 export const titleModel = {
-  id: "meta-llama/llama-3.3-70b-instruct:free",
-  name: "Llama 3.3 70B (Free)",
-  provider: "meta-llama",
-  description: "Fast and capable free model for titles",
+  id: "openai/gpt-oss-120b:free",
+  name: "gpt-oss-120b (Free)",
+  provider: "openai",
+  description: "Large open-source model via free tier",
 };
 
 export type ModelCapabilities = {
@@ -24,48 +25,60 @@ export type ChatModel = {
 };
 
 export function getDefaultCapabilities(model: ChatModel): ModelCapabilities {
+  const visionModels = new Set([
+    "google/gemma-4-31b-it:free",
+    "nex-agi/nex-n2-pro:free",
+  ]);
+
   return {
     tools: true,
-    vision: false,
+    vision: visionModels.has(model.id),
     reasoning: false,
   };
 }
 
-// Curated list of free models on OpenRouter (easy to extend)
+// Exactly the 6 models from the provided screenshot (restricted list)
 export const chatModels: ChatModel[] = [
   {
-    id: "meta-llama/llama-3.3-70b-instruct:free",
-    name: "Llama 3.3 70B",
-    provider: "meta-llama",
-    description: "Excellent general-purpose free model",
-    isFree: true,
-  },
-  {
-    id: "google/gemma-3-27b-it:free",
-    name: "Gemma 3 27B",
-    provider: "google",
-    description: "Strong free Google model",
-    isFree: true,
-  },
-  {
-    id: "qwen/qwen2.5-72b-instruct:free",
-    name: "Qwen2.5 72B",
-    provider: "qwen",
-    description: "Very capable free Chinese model",
-    isFree: true,
-  },
-  {
-    id: "mistralai/mistral-nemo:free",
-    name: "Mistral Nemo",
-    provider: "mistralai",
-    description: "Lightweight but strong free model",
-    isFree: true,
-  },
-  {
     id: "openai/gpt-oss-120b:free",
-    name: "GPT OSS 120B (Free)",
+    name: "gpt-oss-120b",
     provider: "openai",
-    description: "Large open-source model via free tier",
+    description: "Large open-source model (free)",
+    isFree: true,
+  },
+  {
+    id: "poolside/laguna-xs.2:free",
+    name: "Laguna XS.2",
+    provider: "poolside",
+    description: "Poolside model (free)",
+    isFree: true,
+  },
+  {
+    id: "nex-agi/nex-n2-pro:free",
+    name: "Nex-N2-Pro",
+    provider: "nex-agi",
+    description: "Nex AGI model (free)",
+    isFree: true,
+  },
+  {
+    id: "openai/gpt-oss-20b:free",
+    name: "gpt-oss-20b",
+    provider: "openai",
+    description: "Smaller open-source model (free)",
+    isFree: true,
+  },
+  {
+    id: "google/gemma-4-31b-it:free",
+    name: "Gemma 4 31B",
+    provider: "google",
+    description: "Google Gemma 4 (free) — supports images",
+    isFree: true,
+  },
+  {
+    id: "nvidia/nemotron-3-nano-30b-a3b:free",
+    name: "Nemotron 3 Nano 30B A3B",
+    provider: "nvidia",
+    description: "NVIDIA Nemotron (free)",
     isFree: true,
   },
 ];
