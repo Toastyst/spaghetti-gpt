@@ -11,7 +11,8 @@ import {
   MessageActions as Actions,
 } from "../ai-elements/message";
 import { CopyIcon, PencilEditIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Volume2, VolumeX } from "lucide-react";
+import { useTTS } from "@/hooks/use-tts";
 
 export function PureMessageActions({
   chatId,
@@ -30,6 +31,7 @@ export function PureMessageActions({
 }) {
   const { mutate } = useSWRConfig();
   const [_, copyToClipboard] = useCopyToClipboard();
+  const { speak, stop, isSpeaking } = useTTS();
 
   if (isLoading) {
     return null;
@@ -85,6 +87,21 @@ export function PureMessageActions({
         tooltip="Copy"
       >
         <CopyIcon />
+      </Action>
+
+      <Action
+        className="text-muted-foreground/50 hover:text-foreground"
+        onClick={() => {
+          if (!textFromParts) return;
+          if (isSpeaking) {
+            stop();
+          } else {
+            speak(textFromParts);
+          }
+        }}
+        tooltip={isSpeaking ? "Stop speaking" : "Speak response aloud"}
+      >
+        {isSpeaking ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
       </Action>
 
       {regenerate && (
