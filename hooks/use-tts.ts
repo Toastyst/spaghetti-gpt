@@ -6,10 +6,7 @@ export function useTTS() {
   const [autoRead, setAutoRead] = useState(false);
 
   useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-      setVoices(availableVoices);
-    };
+    const loadVoices = () => setVoices(speechSynthesis.getVoices().filter(v => v.lang.startsWith('en')));
     speechSynthesis.onvoiceschanged = loadVoices;
     loadVoices();
     return () => { speechSynthesis.onvoiceschanged = null; };
@@ -18,11 +15,9 @@ export function useTTS() {
   const speak = useCallback((text: string) => {
     if (isSpeaking) speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    if (voices.length > 0) {
-      utterance.voice = voices[0]; // default to first English voice
-    }
+    utterance.voice = voices[0] || null;
     utterance.rate = 1.0;
-    utterance.pitch = 1.05;
+    utterance.pitch = 1.1;
     utterance.onend = () => setIsSpeaking(false);
     speechSynthesis.speak(utterance);
     setIsSpeaking(true);
