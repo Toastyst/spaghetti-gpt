@@ -31,7 +31,7 @@ export function PureMessageActions({
 }) {
   const { mutate } = useSWRConfig();
   const [_, copyToClipboard] = useCopyToClipboard();
-  const { speak, stop, isSpeaking } = useTTS();
+  const { speak, stop, isSpeaking, voices, selectedVoice, setSelectedVoice } = useTTS();
 
   if (isLoading) {
     return null;
@@ -78,7 +78,7 @@ export function PureMessageActions({
   }
 
   return (
-    <Actions className="-ml-0.5 flex items-center gap-0.5">
+    <Actions className="-ml-0.5 flex items-center gap-1 flex-wrap">
       <Action
         className="text-muted-foreground/50 hover:text-foreground"
         onClick={handleCopy}
@@ -101,6 +101,24 @@ export function PureMessageActions({
       >
         {isSpeaking ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
       </Action>
+
+      {voices.length > 1 && (
+        <select
+          className="text-[10px] bg-background/80 border border-border/60 rounded px-1.5 py-0.5 text-muted-foreground cursor-pointer hover:text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          value={selectedVoice?.name || ''}
+          onChange={(e) => {
+            const v = voices.find(vv => vv.name === e.target.value);
+            if (v) setSelectedVoice(v);
+          }}
+          title="Choose voice (saved automatically)"
+        >
+          {voices.map((v) => (
+            <option key={v.name} value={v.name}>
+              {v.name.length > 18 ? v.name.substring(0, 16) + '…' : v.name}
+            </option>
+          ))}
+        </select>
+      )}
 
       {regenerate && (
         <Action
