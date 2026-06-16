@@ -42,12 +42,13 @@ import {
   getCapabilities,
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
-import { getLanguageModel } from "@/lib/ai/providers";
+import { getAiGatewayTools, getLanguageModel, useAiGateway } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { editDocument } from "@/lib/ai/tools/edit-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
+import { webSearch } from "@/lib/ai/tools/web-search";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -234,6 +235,8 @@ export async function POST(request: Request) {
                   "editDocument",
                   "updateDocument",
                   "requestSuggestions",
+                  ...(process.env.SEARXNG_URL ? ["webSearch"] : []),
+                  ...(useAiGateway ? ["webSearchGateway"] : []),
                 ],
           providerOptions: {
             ...(modelConfig?.reasoningEffort && {
@@ -258,6 +261,8 @@ export async function POST(request: Request) {
               dataStream,
               modelId: chatModel,
             }),
+            ...(process.env.SEARXNG_URL ? { webSearch } : {}),
+            ...getAiGatewayTools(), // This adds webSearch from Gateway (uses $5 free credits)
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,

@@ -1,5 +1,4 @@
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
+import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -54,20 +53,18 @@ export async function POST(request: Request) {
 
     const filename = (formData.get("file") as File | null)?.name ?? "upload";
     const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const fileBuffer = await file.arrayBuffer();
 
     try {
-      const uploadsDir = join(process.cwd(), "public", "uploads");
-      await mkdir(uploadsDir, { recursive: true });
+      const blob = await put(safeName, file, {
+        access: "public",
+        contentType: file.type,
+      });
 
-      const uploadPath = join(uploadsDir, safeName);
-      await writeFile(uploadPath, Buffer.from(fileBuffer));
-
-      const url = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/uploads/${encodeURIComponent(
-        safeName
-      )}`;
-
-      return NextResponse.json({ url, pathname: safeName, contentType: file.type });
+      return NextResponse.json({
+        url: blob.url,
+        pathname: blob.pathname,
+        contentType: blob.contentType,
+      });
     } catch (_error) {
       return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }

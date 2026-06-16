@@ -14,12 +14,14 @@
 </p>
 <br/>
 
-## Current Status (June 10, 2026)
+## Current Status (June 16, 2026)
 
-- Postgres integration: Attached
-- AUTH_SECRET: Set
-- Attempting fresh deployment from current main to pick up latest detemplated code + env vars
-- "User not found" errors still occurring on previous deployment (In progress)
+- Local workspace synced with remote (TTS voice features + enhancements)
+- Latest production deploy: READY (commit 55557e5 + local web/blob work)
+- Postgres + Vercel Blob + Auth: configured on Vercel
+- TTS (browser + ElevenLabs) now live on main/prod
+- Added: free webSearch tool (SearXNG self-hosted) + AI Gateway Perplexity fallback
+- Uploads now use @vercel/blob (production-safe)
 
 ## Features
 

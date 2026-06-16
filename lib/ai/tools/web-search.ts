@@ -1,0 +1,78 @@
+import { tool } from "ai";
+import { z } from "zod";
+
+/**
+ * Free web search tool using a self-hosted SearXNG instance (or compatible).
+ *
+ * Set SEARXNG_URL in your environment (e.g. https://your-searxng.example.com)
+ * to enable this tool with zero ongoing cost.
+ *
+ * Recommended: Run SearXNG on Railway, Fly.io, or a cheap VPS.
+ * See earlier discussion for self-hosting options.
+ */
+export const webSearch = tool({
+  description:
+    "Search the web for up-to-date information. Use this for current events, recent facts, research, prices, or anything that may have changed. Returns a list of results with title, url, and content snippet.",
+  inputSchema: z.object({
+    query: z.string().min(1).describe("The search query"),
+    num_results: z
+      .number()
+      .min(1)
+      .max(10)
+      .optional()
+      .default(5)
+      .describe("Number of results to return (1-10)"),
+  }),
+  execute: async ({ query, num_results = 5 }) => {
+    const baseUrl = process.env.SEARXNG_URL;
+
+    if (!baseUrl) {
+      return {
+        error:
+          "Web search is not configured. Set SEARXNG_URL to your self-hosted SearXNG instance to enable free web search.",
+      };
+    }
+
+    try {
+      const url = new URL("/search", baseUrl);
+      url.searchParams.set("format", "json");
+      url.searchParams.set("q", query);
+      url.searchParams.set("language", "en");
+      url.searchParams.set("safesearch", "1");
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          "User-Agent": "spaghetti-gpt-agent/1.0",
+        },
+      });
+
+      if (!response.ok) {
+        return {
+          error: `Search failed with status ${response.status}`,
+        };
+      }
+
+      const data = await response.json();
+
+      const results = (data.results || [])
+        .slice(0, num_results)
+        .map((r: any) => ({
+          title: r.title,
+          url: r.url,
+          content: r.content || r.snippet || "",
+          engine: r.engine,
+        }));
+
+      return {
+        query,
+        results,
+        note: results.length === 0 ? "No results found." : undefined,
+      };
+    } catch (error) {
+      console.error("webSearch error:", error);
+      return {
+        error: "Failed to perform web search. The search service may be unavailable.",
+      };
+    }
+  },
+});
