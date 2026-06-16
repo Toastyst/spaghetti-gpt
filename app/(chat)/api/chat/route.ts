@@ -149,7 +149,7 @@ export async function POST(request: Request) {
       titlePromise = generateTitleFromUserMessage({ message });
     }
 
-    let uiMessages: ChatMessage;
+    let uiMessages: ChatMessage[];
 
     if (isToolApprovalFlow && messages) {
       const dbMessages = convertToUIMessages(messagesFromDb);
