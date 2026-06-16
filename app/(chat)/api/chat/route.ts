@@ -266,7 +266,7 @@ export async function POST(request: Request) {
             searchSpaghettiStories,
             ...(process.env.SEARXNG_URL ? { webSearch } : {}),
             ...getAiGatewayTools(), // This adds webSearch from Gateway (uses $5 free credits)
-          },
+          } as any,
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",

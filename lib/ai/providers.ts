@@ -64,14 +64,14 @@ export function getTitleModel(): LanguageModelV3 {
  * while getting premium tools like Perplexity web search via Gateway's $5/month free tier.
  */
 export function getAiGatewayTools() {
-  if (!useAiGateway) return {};
+  if (!useAiGateway) return {} as const;
 
   return {
     // Web search tool powered by Perplexity via AI Gateway.
     // Very useful for agentic behavior. Uses AI Gateway credits ($5 free per team per month).
     // Named differently from the free SearXNG webSearch so both can be available.
     webSearchGateway: gateway.tools.perplexitySearch(),
-  };
+  } as const;
 }
 
 /**
