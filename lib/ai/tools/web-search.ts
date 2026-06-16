@@ -9,13 +9,16 @@ import { z } from "zod";
  * - Alternative high-quality path (no self-host needed): Enable Vercel AI Gateway and use the `webSearchGateway` tool (Perplexity-powered, uses platform credits).
  *
  * After search results, use the `browsePage` tool on the most relevant URLs to get full page content ("extract").
+ *
+ * To protect your instance, set SEARXNG_USER and SEARXNG_PASS for HTTP Basic Auth (works with Caddy reverse proxy in front).
  */
 export const webSearch = tool({
   description:
     "Search the web for up-to-date information (news, facts, research, prices, etc.). " +
     "Returns title, url, and content snippet for each result. " +
     "Use together with browsePage for full page extraction when you need the actual article text. " +
-    "Falls back to public SearXNG instances (see https://searx.space) if SEARXNG_URL is not configured.",
+    "Falls back to public SearXNG instances (see https://searx.space) if SEARXNG_URL is not configured. " +
+    "Supports Basic Auth via SEARXNG_USER + SEARXNG_PASS if your instance is protected.",
   inputSchema: z.object({
     query: z.string().min(1).describe("The search query"),
     num_results: z
@@ -45,10 +48,20 @@ export const webSearch = tool({
         url.searchParams.set("language", "en");
         url.searchParams.set("safesearch", "1");
 
+        const headers: Record<string, string> = {
+          "User-Agent": "spaghetti-gpt-agent/1.0",
+        };
+
+        // Support HTTP Basic Auth if credentials are provided
+        const user = process.env.SEARXNG_USER;
+        const pass = process.env.SEARXNG_PASS;
+        if (user && pass) {
+          const auth = Buffer.from(`${user}:${pass}`).toString("base64");
+          headers["Authorization"] = `Basic ${auth}`;
+        }
+
         const response = await fetch(url.toString(), {
-          headers: {
-            "User-Agent": "spaghetti-gpt-agent/1.0",
-          },
+          headers,
           // short timeout per instance
           signal: AbortSignal.timeout(8000),
         });
