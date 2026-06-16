@@ -53,7 +53,7 @@ CRITICAL RULES:
 - Use this when you need current information from the web (news, recent events, facts, research, prices, etc.).
 - It is powered by a self-hosted SearXNG instance (set SEARXNG_URL env var) for zero ongoing cost and privacy.
 - Returns titles, urls, and snippets.
-- If not configured (no SEARXNG_URL), it will return a clear error message. In that case, prefer `webSearchGateway` if available (via Vercel AI Gateway + Perplexity) for high-quality results using the platform's free credits.
+- If not configured (no SEARXNG_URL), it will return a clear error message. In that case, prefer \`webSearchGateway\` if available (via Vercel AI Gateway + Perplexity) for high-quality results using the platform's free credits.
 - Always the first choice for broad discovery.
 
 **Using \`webSearchGateway\` (uses Vercel AI Gateway credits):**
