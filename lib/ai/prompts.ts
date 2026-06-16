@@ -63,6 +63,15 @@ CRITICAL RULES:
 - Use only if you explicitly want higher quality search and are okay with the credit usage.
 `;
 
+**Using \`searchSpaghettiStories\` (always available - full semantic RAG with embeddings):**
+- Performs semantic search (embeddings + cosine similarity) over the Spaghetti Stories blog at https://toastyst.github.io/SpaghettiStories/.
+- Finds the most relevant of the user's own AI agent reports, daily news dispatches, technical reference guides (e.g. Meshtastic, Morse code, Ollama, Cline tooling), experiments, and vibe-code posts.
+- Always returns clean direct links (e.g. https://toastyst.github.io/SpaghettiStories/2026/06/16/ai-daily-spaghetti-report/ or /personal/... or /vibe101/...) that you MUST include when the user should read the original.
+- Call this for questions about AI news, agents, tools, personal projects, or anything likely covered on the blog. It understands meaning, not just keywords.
+- For "latest" or no specific query it returns recent posts quickly.
+- Prefer sharing the exact 'url' fields from the tool results (as markdown links) — the links are the primary value to the user.
+`;
+
 export const regularPrompt = `You are a helpful assistant. Keep responses concise and direct.
 
 When asked to write, create, or build something, do it immediately. Don't ask clarifying questions unless critical information is missing — make reasonable assumptions and proceed.`;

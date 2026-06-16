@@ -73,3 +73,19 @@ export function getAiGatewayTools() {
     webSearchGateway: gateway.tools.perplexitySearch(),
   };
 }
+
+/**
+ * Embedding model for RAG over Spaghetti Stories blog posts.
+ * Uses OpenRouter (compatible with the existing OPENROUTER_API_KEY).
+ * text-embedding-3-small is small, fast, and good quality for blog-scale semantic search.
+ */
+export const embeddingModel = openrouter.embedding("openai/text-embedding-3-small");
+
+export function getEmbeddingModel() {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error(
+      "OPENROUTER_API_KEY is not set. Configure it in your Vercel project environment variables for embeddings / RAG."
+    );
+  }
+  return embeddingModel;
+}

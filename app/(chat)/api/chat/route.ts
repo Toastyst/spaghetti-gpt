@@ -49,6 +49,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { webSearch } from "@/lib/ai/tools/web-search";
+import { searchSpaghettiStories } from "@/lib/ai/tools/search-stories";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -235,6 +236,7 @@ export async function POST(request: Request) {
                   "editDocument",
                   "updateDocument",
                   "requestSuggestions",
+                  "searchSpaghettiStories",
                   ...(process.env.SEARXNG_URL ? ["webSearch"] : []),
                   ...(useAiGateway ? ["webSearchGateway"] : []),
                 ],
@@ -261,6 +263,7 @@ export async function POST(request: Request) {
               dataStream,
               modelId: chatModel,
             }),
+            searchSpaghettiStories,
             ...(process.env.SEARXNG_URL ? { webSearch } : {}),
             ...getAiGatewayTools(), // This adds webSearch from Gateway (uses $5 free credits)
           },
