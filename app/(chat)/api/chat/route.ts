@@ -50,6 +50,7 @@ import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { searchSpaghettiStories } from "@/lib/ai/tools/search-stories";
+import { browsePage } from "@/lib/ai/tools/browse-page";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -237,7 +238,8 @@ export async function POST(request: Request) {
                   "updateDocument",
                   "requestSuggestions",
                   "searchSpaghettiStories",
-                  ...(process.env.SEARXNG_URL ? ["webSearch"] : []),
+                  "webSearch",
+                  "browsePage",
                   ...(useAiGateway ? ["webSearchGateway"] : []),
                 ],
           providerOptions: {
@@ -264,7 +266,8 @@ export async function POST(request: Request) {
               modelId: chatModel,
             }),
             searchSpaghettiStories,
-            ...(process.env.SEARXNG_URL ? { webSearch } : {}),
+            webSearch,
+            browsePage,
             ...getAiGatewayTools(), // This adds webSearch from Gateway (uses $5 free credits)
           } as any,
           experimental_telemetry: {

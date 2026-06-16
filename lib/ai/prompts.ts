@@ -51,9 +51,10 @@ CRITICAL RULES:
 
 **Using \`webSearch\` (free, requires self-hosted SearXNG):**
 - Use this when you need current information from the web (news, recent events, facts, research, prices, etc.).
-- It is powered by a self-hosted SearXNG instance (set SEARXNG_URL env var).
+- It is powered by a self-hosted SearXNG instance (set SEARXNG_URL env var) for zero ongoing cost and privacy.
 - Returns titles, urls, and snippets.
-- This is the recommended way to stay 100% free for web search.
+- If not configured (no SEARXNG_URL), it will return a clear error message. In that case, prefer `webSearchGateway` if available (via Vercel AI Gateway + Perplexity) for high-quality results using the platform's free credits.
+- Always the first choice for broad discovery.
 
 **Using \`webSearchGateway\` (uses Vercel AI Gateway credits):**
 - Alternative web search powered by Perplexity through AI Gateway.
@@ -61,13 +62,11 @@ CRITICAL RULES:
 - Consumes from the $5 monthly free credits on AI Gateway (or paid credits after that).
 - Use only if you explicitly want higher quality search and are okay with the credit usage.
 
-**Using \`searchSpaghettiStories\` (always available - full semantic RAG with embeddings):**
-- Performs semantic search (embeddings + cosine similarity) over the Spaghetti Stories blog at https://toastyst.github.io/SpaghettiStories/.
-- Finds the most relevant of the user's own AI agent reports, daily news dispatches, technical reference guides (e.g. Meshtastic, Morse code, Ollama, Cline tooling), experiments, and vibe-code posts.
-- Always returns clean direct links (e.g. https://toastyst.github.io/SpaghettiStories/2026/06/16/ai-daily-spaghetti-report/ or /personal/... or /vibe101/...) that you MUST include when the user should read the original.
-- Call this for questions about AI news, agents, tools, personal projects, or anything likely covered on the blog. It understands meaning, not just keywords.
-- For "latest" or no specific query it returns recent posts quickly.
-- Prefer sharing the exact 'url' fields from the tool results (as markdown links) — the links are the primary value to the user.
+**Using \`browsePage\` (always available):**
+- Fetches the full main content from a specific URL (use the exact URLs returned by webSearch or webSearchGateway).
+- Strips scripts, styles, navigation, etc. and returns the page title + clean readable text.
+- Essential for "extract" / deep reading: after a search, call this on the most promising 1-3 links to get full articles, data, or details before answering or citing.
+- Always provide the original URL back to the user when you use information from it.
 `;
 
 export const regularPrompt = `You are a helpful assistant. Keep responses concise and direct.

@@ -2,17 +2,19 @@ import { tool } from "ai";
 import { z } from "zod";
 
 /**
- * Free web search tool using a self-hosted SearXNG instance (or compatible).
+ * Web search tool.
  *
- * Set SEARXNG_URL in your environment (e.g. https://your-searxng.example.com)
- * to enable this tool with zero ongoing cost.
+ * Primary (free/private): self-hosted SearXNG (set SEARXNG_URL).
+ * Fallback (when AI Gateway enabled): use the separate webSearchGateway tool (Perplexity).
  *
- * Recommended: Run SearXNG on Railway, Fly.io, or a cheap VPS.
- * See earlier discussion for self-hosting options.
+ * After getting results, use the `browsePage` tool on promising URLs for full page "extract".
+ *
+ * Recommended self-host: Run SearXNG on Railway, Fly.io, or a cheap VPS.
  */
 export const webSearch = tool({
   description:
-    "Search the web for up-to-date information. Use this for current events, recent facts, research, prices, or anything that may have changed. Returns a list of results with title, url, and content snippet.",
+    "Search the web for up-to-date information. Use this for current events, recent facts, research, prices, or anything that may have changed. Returns a list of results with title, url, and content snippet. " +
+    "After search, follow up with browsePage on the best URLs to get full content (extract).",
   inputSchema: z.object({
     query: z.string().min(1).describe("The search query"),
     num_results: z
@@ -29,7 +31,9 @@ export const webSearch = tool({
     if (!baseUrl) {
       return {
         error:
-          "Web search is not configured. Set SEARXNG_URL to your self-hosted SearXNG instance to enable free web search.",
+          "Web search via SearXNG is not configured (no SEARXNG_URL env). " +
+          "If Vercel AI Gateway is enabled for this project, call the webSearchGateway tool instead for Perplexity results. " +
+          "Otherwise tell the user to set SEARXNG_URL for free private search (or use their knowledge).",
       };
     }
 
