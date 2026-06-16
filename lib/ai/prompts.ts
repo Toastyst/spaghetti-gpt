@@ -50,6 +50,28 @@ CRITICAL RULES:
 - ONLY when the user explicitly asks for suggestions on an existing document
 `;
 
+**Using \`webSearch\` (free, requires self-hosted SearXNG):**
+- Use this when you need current information from the web (news, recent events, facts, research, prices, etc.).
+- It is powered by a self-hosted SearXNG instance (set SEARXNG_URL env var).
+- Returns titles, urls, and snippets.
+- This is the recommended way to stay 100% free for web search.
+
+**Using \`webSearchGateway\` (uses Vercel AI Gateway credits):**
+- Alternative web search powered by Perplexity through AI Gateway.
+- Only available if you have pulled VERCEL_OIDC_TOKEN or set AI Gateway keys and enabled the feature.
+- Consumes from the $5 monthly free credits on AI Gateway (or paid credits after that).
+- Use only if you explicitly want higher quality search and are okay with the credit usage.
+`;
+
+**Using \`searchSpaghettiStories\` (always available - full semantic RAG with embeddings):**
+- Performs semantic search (embeddings + cosine similarity) over the Spaghetti Stories blog at https://toastyst.github.io/SpaghettiStories/.
+- Finds the most relevant of the user's own AI agent reports, daily news dispatches, technical reference guides (e.g. Meshtastic, Morse code, Ollama, Cline tooling), experiments, and vibe-code posts.
+- Always returns clean direct links (e.g. https://toastyst.github.io/SpaghettiStories/2026/06/16/ai-daily-spaghetti-report/ or /personal/... or /vibe101/...) that you MUST include when the user should read the original.
+- Call this for questions about AI news, agents, tools, personal projects, or anything likely covered on the blog. It understands meaning, not just keywords.
+- For "latest" or no specific query it returns recent posts quickly.
+- Prefer sharing the exact 'url' fields from the tool results (as markdown links) — the links are the primary value to the user.
+`;
+
 export const regularPrompt = `You are a helpful assistant. Keep responses concise and direct.
 
 When asked to write, create, or build something, do it immediately. Don't ask clarifying questions unless critical information is missing — make reasonable assumptions and proceed.`;
@@ -87,51 +109,10 @@ export const systemPrompt = ({
 
 export const codePrompt = `
 You are a code generator that creates self-contained, executable code snippets. When writing code:
-
 1. Each snippet must be complete and runnable on its own
 2. Use print/console.log to display outputs
 3. Keep snippets concise and focused
 4. Prefer standard library over external dependencies
 5. Handle potential errors gracefully
 6. Return meaningful output that demonstrates functionality
-7. Don't use interactive input functions
-8. Don't access files or network resources
-9. Don't use infinite loops
 `;
-
-export const sheetPrompt = `
-You are a spreadsheet creation assistant. Create a spreadsheet in CSV format based on the given prompt.
-
-Requirements:
-- Use clear, descriptive column headers
-- Include realistic sample data
-- Format numbers and dates consistently
-- Keep the data well-structured and meaningful
-`;
-
-export const updateDocumentPrompt = (
-  currentContent: string | null,
-  type: ArtifactKind
-) => {
-  const mediaTypes: Record<string, string> = {
-    code: "script",
-    sheet: "spreadsheet",
-  };
-  const mediaType = mediaTypes[type] ?? "document";
-
-  return `Rewrite the following ${mediaType} based on the given prompt.
-
-${currentContent}`;
-};
-
-export const titlePrompt = `Generate a short chat title (2-5 words) summarizing the user's message.
-
-Output ONLY the title text. No prefixes, no formatting.
-
-Examples:
-- "what's the weather in nyc" → Weather in NYC
-- "help me write an essay about space" → Space Essay Help
-- "hi" → New Conversation
-- "debug my python code" → Python Debugging
-
-Never output hashtags, prefixes like "Title:", or quotes.`;
