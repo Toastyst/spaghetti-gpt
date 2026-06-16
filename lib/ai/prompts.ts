@@ -48,7 +48,6 @@ CRITICAL RULES:
 
 **Using \`requestSuggestions\`:**
 - ONLY when the user explicitly asks for suggestions on an existing document
-`;
 
 **Using \`webSearch\` (free, requires self-hosted SearXNG):**
 - Use this when you need current information from the web (news, recent events, facts, research, prices, etc.).
@@ -61,7 +60,6 @@ CRITICAL RULES:
 - Only available if you have pulled VERCEL_OIDC_TOKEN or set AI Gateway keys and enabled the feature.
 - Consumes from the $5 monthly free credits on AI Gateway (or paid credits after that).
 - Use only if you explicitly want higher quality search and are okay with the credit usage.
-`;
 
 **Using \`searchSpaghettiStories\` (always available - full semantic RAG with embeddings):**
 - Performs semantic search (embeddings + cosine similarity) over the Spaghetti Stories blog at https://toastyst.github.io/SpaghettiStories/.
