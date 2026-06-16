@@ -49,11 +49,13 @@ CRITICAL RULES:
 **Using \`requestSuggestions\`:**
 - ONLY when the user explicitly asks for suggestions on an existing document
 
-**Using \`webSearch\` (free, requires self-hosted SearXNG):**
+**Using \`webSearch\` (free, SearXNG-based):**
 - Use this when you need current information from the web (news, recent events, facts, research, prices, etc.).
-- It is powered by a self-hosted SearXNG instance (set SEARXNG_URL env var) for zero ongoing cost and privacy.
+- Powered by SearXNG. If you set SEARXNG_URL it will use your instance (best for privacy/speed).
+- If SEARXNG_URL is not set it automatically falls back to public instances listed on https://searx.space.
 - Returns titles, urls, and snippets.
-- If not configured (no SEARXNG_URL), it will return a clear error message. In that case, prefer \`webSearchGateway\` if available (via Vercel AI Gateway + Perplexity) for high-quality results using the platform's free credits.
+- Pair it with \`browsePage\` to get the full content of promising results ("extract").
+- For higher-quality results without self-hosting, use \`webSearchGateway\` (Perplexity via AI Gateway) when available.
 - Always the first choice for broad discovery.
 
 **Using \`webSearchGateway\` (uses Vercel AI Gateway credits):**
