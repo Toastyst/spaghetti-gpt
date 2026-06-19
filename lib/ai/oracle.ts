@@ -1,7 +1,12 @@
 import { generateText } from "ai";
 import { getLanguageModel } from "./providers";
 import { chatModels, type ChatModel } from "./models";
-import type { CoreMessage } from "ai";
+
+// Local message type used by the router — narrow to what the code reads
+type RouterMessage = {
+  role: string;
+  content: string | Array<any> | { text?: string } | unknown;
+};
 
 // The fast decider model (high throughput, cheap, good at classification)
 const DECIDER_MODEL_ID = "nvidia/nemotron-3-nano-30b-a3b:free" as const;
@@ -38,7 +43,7 @@ Reason: <one short sentence explaining why>
 `;
 
 export async function resolveSpaghettiOracle(
-  messages: CoreMessage[]
+  messages: RouterMessage[]
 ): Promise<string> {
   try {
     // Get the last user message content
@@ -52,6 +57,10 @@ export async function resolveSpaghettiOracle(
         promptContent = lastUserMsg.content
           .map((part: any) => (typeof part === "string" ? part : part.text || ""))
           .join(" ");
+      } else if (typeof lastUserMsg.content === "object" && lastUserMsg.content !== null) {
+        // handle { text: string } shape
+        // @ts-expect-error safe runtime check
+        promptContent = (lastUserMsg.content.text as string) ?? "General question";
       }
     }
 
