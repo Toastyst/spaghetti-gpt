@@ -1,15 +1,3 @@
-      execute: async ({ writer: dataStream }) => {
-        let activeModelId = chatModel;
-
-        if (chatModel === "spaghetti-oracle") {
-          try {
-            activeModelId = await resolveSpaghettiOracle(modelMessages);
-          } catch (err) {
-            console.error("[Oracle] Failed to resolve, falling back", err);
-            activeModelId = DEFAULT_CHAT_MODEL;
-          }
-        }
-
         const result = streamText({
           model: getLanguageModel(activeModelId),
           system: systemPrompt({ requestHints, supportsTools }),
