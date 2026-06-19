@@ -45,9 +45,6 @@
             browsePage,
             ...getAiGatewayTools(),
           },
-          onFinish: async ({ response }) => {
-            // existing onFinish logic can stay here if it was present
-          },
         });
 
         result.mergeIntoDataStream(dataStream, {
