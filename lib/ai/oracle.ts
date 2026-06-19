@@ -1,13 +1,17 @@
+import { generateText } from "ai";
 import { getLanguageModel } from "./providers";
-import { chatModels } from "./models";
+import { chatModels, type ChatModel } from "./models";
+import type { CoreMessage } from "ai";
 
 // The fast decider model (high throughput, cheap, good at classification)
-const DECIDER_MODEL_ID = "nvidia/nemotron-3-nano-30b-a3b:free";
+const DECIDER_MODEL_ID = "nvidia/nemotron-3-nano-30b-a3b:free" as const;
 
 // Valid real model IDs that the oracle can route to (exclude itself)
-const VALID_TARGET_MODELS = chatModels
-  .map(m => m.id)
-  .filter(id => id !== "spaghetti-oracle");
+const VALID_TARGET_MODELS = new Set(
+  chatModels
+    .map((m: ChatModel) => m.id)
+    .filter((id: string) => id !== "spaghetti-oracle")
+);
 
 const ROUTER_SYSTEM_PROMPT = `You are an expert model router for a free-tier AI chat app.
 
@@ -28,49 +32,52 @@ Rules:
 - For quick questions, summaries, simple creative → choose nvidia/nemotron-3-nano-30b-a3b:free or openai/gpt-oss-20b:free
 - If the user mentions images or vision → prefer google/gemma-4-31b-it:free
 
-Respond with EXACTLY this format (no extra text):
+Respond with EXACTLY this format (no extra text, no markdown):
 Model: <exact model id from the list above>
 Reason: <one short sentence explaining why>
 `;
 
 export async function resolveSpaghettiOracle(
-  messages: any[]
+  messages: CoreMessage[]
 ): Promise<string> {
   try {
-    // Extract the latest user message for decision making
-    const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
-    const promptContent =
-      typeof lastUserMessage?.content === "string"
-        ? lastUserMessage.content
-        : lastUserMessage?.parts?.map((p: any) => p.text || "").join(" ") || "General question";
+    // Get the last user message content
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+    let promptContent = "General question";
+
+    if (lastUserMsg) {
+      if (typeof lastUserMsg.content === "string") {
+        promptContent = lastUserMsg.content;
+      } else if (Array.isArray(lastUserMsg.content)) {
+        promptContent = lastUserMsg.content
+          .map((part: any) => (typeof part === "string" ? part : part.text || ""))
+          .join(" ");
+      }
+    }
 
     const deciderModel = getLanguageModel(DECIDER_MODEL_ID);
 
-    const { text } = await import("ai").then(({ generateText }) =>
-      generateText({
-        model: deciderModel,
-        system: ROUTER_SYSTEM_PROMPT,
-        prompt: `User request: ${promptContent}
+    const { text } = await generateText({
+      model: deciderModel,
+      system: ROUTER_SYSTEM_PROMPT,
+      prompt: `User request: ${promptContent}
 
 Choose the best model and respond in the exact format specified.`,
-        maxTokens: 100,
-        temperature: 0.1,
-      })
-    );
+      maxTokens: 80,
+      temperature: 0.1,
+    });
 
-    // Parse the Model: line
-    const modelMatch = text.match(/Model:\s*(.+)/i);
+    // Parse "Model: xxx" line (case insensitive, tolerant)
+    const modelMatch = text.match(/Model:\s*([\w\/\-:.]+)/i);
     let chosen = modelMatch?.[1]?.trim();
 
-    // Validate
-    if (!chosen || !VALID_TARGET_MODELS.includes(chosen)) {
-      // Fallback to a strong default
+    if (!chosen || !VALID_TARGET_MODELS.has(chosen)) {
       chosen = "openai/gpt-oss-120b:free";
     }
 
     return chosen;
   } catch (error) {
-    console.error("[SpaghettiOracle] Resolution failed:", error);
-    return "openai/gpt-oss-120b:free"; // safe fallback
+    console.error("[SpaghettiOracle] Resolution failed, using fallback:", error);
+    return "openai/gpt-oss-120b:free";
   }
 }
