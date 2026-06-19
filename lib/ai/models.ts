@@ -1,124 +1,20 @@
-// Focused list of free / high-quality OpenRouter models for testing
-// Restricted to the 6 models requested to reduce bugs and only enable image support where supported
-export const DEFAULT_CHAT_MODEL = "openai/gpt-oss-120b:free";
+import { type ChatModel } from './types'; // adjust if needed
 
-export const titleModel = {
-  id: "openai/gpt-oss-120b:free",
-  name: "gpt-oss-120b (Free)",
-  provider: "openai",
-  description: "Large open-source model via free tier",
-};
+// ... existing code ...
 
-export type ModelCapabilities = {
-  tools: boolean;
-  vision: boolean;
-  reasoning: boolean;
-};
+// Added Spaghetti Oracle
+chatModels.push({
+  id: 'spaghetti-oracle',
+  name: 'Spaghetti Oracle',
+  provider: 'custom',
+  description: 'Intelligent router that uses a fast decider (Nemotron Nano) to pick the best free model for your specific prompt from the big boys: Owl Alpha for long research, Laguna for coding, Nemotron for reasoning, etc. + optional ensemble for critical steps.',
+  isFree: true,
+});
 
-export type ChatModel = {
-  id: string;
-  name: string;
-  provider: string;
-  description: string;
-  isFree?: boolean;
-  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high";
-};
+// Update allowedModelIds
+allowedModelIds.add('spaghetti-oracle');
 
-export function getDefaultCapabilities(model: ChatModel): ModelCapabilities {
-  const visionModels = new Set([
-    "google/gemma-4-31b-it:free",
-    "nex-agi/nex-n2-pro:free",
-  ]);
+// Update DEFAULT if you want, or keep existing
+// DEFAULT_CHAT_MODEL = 'spaghetti-oracle'; // optional
 
-  return {
-    tools: true,
-    vision: visionModels.has(model.id),
-    reasoning: false,
-  };
-}
-
-// Exactly the 6 models from the provided screenshot (restricted list)
-export const chatModels: ChatModel[] = [
-  {
-    id: "openai/gpt-oss-120b:free",
-    name: "gpt-oss-120b",
-    provider: "openai",
-    description: "Large open-source model (free)",
-    isFree: true,
-  },
-  {
-    id: "poolside/laguna-xs.2:free",
-    name: "Laguna XS.2",
-    provider: "poolside",
-    description: "Poolside model (free)",
-    isFree: true,
-  },
-  {
-    id: "nex-agi/nex-n2-pro:free",
-    name: "Nex-N2-Pro",
-    provider: "nex-agi",
-    description: "Nex AGI model (free)",
-    isFree: true,
-  },
-  {
-    id: "openai/gpt-oss-20b:free",
-    name: "gpt-oss-20b",
-    provider: "openai",
-    description: "Smaller open-source model (free)",
-    isFree: true,
-  },
-  {
-    id: "google/gemma-4-31b-it:free",
-    name: "Gemma 4 31B",
-    provider: "google",
-    description: "Google Gemma 4 (free) — supports images",
-    isFree: true,
-  },
-  {
-    id: "nvidia/nemotron-3-nano-30b-a3b:free",
-    name: "Nemotron 3 Nano 30B A3B",
-    provider: "nvidia",
-    description: "NVIDIA Nemotron (free)",
-    isFree: true,
-  },
-];
-
-export async function getCapabilities(): Promise<
-  Record<string, ModelCapabilities>
-> {
-  return Object.fromEntries(
-    chatModels.map((model) => [model.id, getDefaultCapabilities(model)])
-  );
-}
-
-export const isDemo = process.env.IS_DEMO === "1";
-
-export type GatewayModelWithCapabilities = ChatModel & {
-  capabilities: ModelCapabilities;
-};
-
-export async function getAllGatewayModels(): Promise<
-  GatewayModelWithCapabilities[]
-> {
-  return chatModels.map((model) => ({
-    ...model,
-    capabilities: getDefaultCapabilities(model),
-  }));
-}
-
-export function getActiveModels(): ChatModel[] {
-  return chatModels;
-}
-
-export const allowedModelIds = new Set(chatModels.map((m) => m.id));
-
-export const modelsByProvider = chatModels.reduce(
-  (acc, model) => {
-    if (!acc[model.provider]) {
-      acc[model.provider] = [];
-    }
-    acc[model.provider].push(model);
-    return acc;
-  },
-  {} as Record<string, ChatModel[]>
-);
+console.log('Spaghetti Oracle model added successfully');
