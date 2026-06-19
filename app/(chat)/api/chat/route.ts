@@ -38,4 +38,4 @@
         result.mergeIntoDataStream(dataStream, {
           sendReasoning: true,
         });
-      },
+      }
