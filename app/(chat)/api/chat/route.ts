@@ -4,8 +4,6 @@
         if (chatModel === "spaghetti-oracle") {
           try {
             activeModelId = await resolveSpaghettiOracle(modelMessages);
-            // You can optionally stream a small data event here for UI feedback in the future
-            // dataStream.write({ type: 'data', data: { oracleRoutedTo: activeModelId } });
           } catch (err) {
             console.error("[Oracle] Failed to resolve, falling back", err);
             activeModelId = DEFAULT_CHAT_MODEL;
@@ -14,3 +12,45 @@
 
         const result = streamText({
           model: getLanguageModel(activeModelId),
+          system: systemPrompt({ requestHints, supportsTools }),
+          messages: modelMessages,
+          stopWhen: stepCountIs(5),
+          experimental_activeTools:
+            isReasoningModel && !supportsTools
+              ? []
+              : [
+                  "getWeather",
+                  "createDocument",
+                  "editDocument",
+                  "updateDocument",
+                  "requestSuggestions",
+                  "searchSpaghettiStories",
+                  "webSearch",
+                  "browsePage",
+                  ...(useAiGateway ? ["webSearchGateway"] : []),
+                ],
+          providerOptions: {
+            ...(modelConfig?.reasoningEffort && {
+              openai: { reasoningEffort: modelConfig.reasoningEffort },
+            }),
+          },
+          tools: {
+            getWeather,
+            createDocument,
+            editDocument,
+            updateDocument,
+            requestSuggestions,
+            searchSpaghettiStories,
+            webSearch,
+            browsePage,
+            ...getAiGatewayTools(),
+          },
+          onFinish: async ({ response }) => {
+            // existing onFinish logic can stay here if it was present
+          },
+        });
+
+        result.mergeIntoDataStream(dataStream, {
+          sendReasoning: true,
+        });
+      },
