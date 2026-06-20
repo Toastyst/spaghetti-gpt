@@ -152,10 +152,19 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       },
     }),
     onData: (dataPart) => {
-      setDataStream((ds) => (ds ? [...ds, dataPart] : []));
+      // Reset data stream on new oracle-thinking (start of response decision) so old events don't pollute hasOracleThinking / latest model
+      if (dataPart.type === "data-oracle-thinking") {
+        setDataStream([dataPart]);
+      } else {
+        setDataStream((ds) => (ds ? [...ds, dataPart] : [dataPart]));
+      }
 
       if (dataPart.type === "data-model-used") {
-        const modelInfo = dataPart.data as { model: string; isOracle: boolean; reason?: string };
+        const incoming = dataPart.data as { model?: string; isOracle?: boolean; reason?: string } | undefined;
+        if (!incoming || typeof incoming !== "object" || !incoming.model) {
+          return;
+        }
+        const modelInfo = incoming as { model: string; isOracle: boolean; reason?: string };
         // Attach to the most recent assistant message so the pill can render for historical + current
         setMessages((current) => {
           const lastAssistantIndex = [...current]
