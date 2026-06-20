@@ -136,7 +136,8 @@ const PurePreviewMessage = ({
       return null;
     }
 
-    if (type === "text" || type === "text-delta") {
+    const partType = type as string;
+    if (partType === "text" || partType === "text-delta") {
       const textContent = (part as any).text || (part as any).delta || "";
       return (
         <MessageContent
