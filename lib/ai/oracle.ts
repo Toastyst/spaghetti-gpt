@@ -1,45 +1,108 @@
-import { generateText } from 'ai';
-import { getLanguageModel } from './providers';
-import { chatModels, type ChatModel } from './models';
+import { generateText } from "ai";
+import { getLanguageModel } from "./providers";
+import { chatModels, type ChatModel } from "./models";
 
-// The fast decider model (high throughput, cheap, good at classification)
-const DECIDER_MODEL_ID = 'nvidia/nemotron-3-nano-30b-a3b:free' as const;
+// The fast decider model (high throughput)
+const DECIDER_MODEL_ID = "nvidia/nemotron-3-nano-30b-a3b:free" as const;
 
-const ROUTER_SYSTEM_PROMPT = `You are an expert routing assistant for Spaghetti-gpt.
-Your only job is to choose the single best free model from this list for the user's current request:
+// Mapping from friendly/short names (what the LLM might output) to exact OpenRouter model IDs
+const MODEL_ID_MAP: Record<string, string> = {
+  // Friendly names that might come from LLM
+  "Nex-N2-Pro": "nex-agi/nex-n2-pro:free",
+  "Nex N2 Pro": "nex-agi/nex-n2-pro:free",
+  "nex-n2-pro": "nex-agi/nex-n2-pro:free",
+  "Laguna": "poolside/laguna-xs.2:free",
+  "Laguna XS.2": "poolside/laguna-xs.2:free",
+  "Laguna M.1": "poolside/laguna-xs.2:free",
+  "Owl Alpha": "openai/gpt-oss-120b:free",
+  "Owl": "openai/gpt-oss-120b:free",
+  "Nemotron 3 Ultra": "openai/gpt-oss-120b:free", // fallback to strong one
+  "Nemotron 3 Super": "openai/gpt-oss-120b:free",
+  "Nemotron Ultra": "openai/gpt-oss-120b:free",
+  "Nemotron Nano": "nvidia/nemotron-3-nano-30b-a3b:free",
+  "Nano": "nvidia/nemotron-3-nano-30b-a3b:free",
+  "Gemma 4 31B": "google/gemma-4-31b-it:free",
+  "Gemma": "google/gemma-4-31b-it:free",
+  // Direct full IDs (in case LLM outputs them correctly)
+  "nex-agi/nex-n2-pro:free": "nex-agi/nex-n2-pro:free",
+  "poolside/laguna-xs.2:free": "poolside/laguna-xs.2:free",
+  "openai/gpt-oss-120b:free": "openai/gpt-oss-120b:free",
+  "openai/gpt-oss-20b:free": "openai/gpt-oss-20b:free",
+  "google/gemma-4-31b-it:free": "google/gemma-4-31b-it:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free": "nvidia/nemotron-3-nano-30b-a3b:free",
+};
 
-- Owl Alpha → long research, massive context, huge documents, long sessions
-- Laguna M.1 or Laguna XS.2 → coding, debugging, building apps, agentic tasks
-- Nemotron 3 Ultra or Nemotron 3 Super → deep reasoning, planning, complex analysis
-- Nex-N2-Pro → balanced strong reasoning + speed, multi-step tasks
-- Nemotron Nano or Gemma 4 31B → quick answers, summaries, simple creative, high volume
+// Safe default that almost always has endpoints
+const SAFE_DEFAULT = "openai/gpt-oss-120b:free";
 
-Respond with ONLY this exact format:
-Model: [exact model name from the list above]
-Reason: [one short sentence why this model is best]`;
+const ROUTER_SYSTEM_PROMPT = `You are an expert model router for a free AI chat system called Spaghetti-gpt.
 
-export async function resolveSpaghettiOracle(messages: any[]) {
+Your job is to pick the SINGLE best model for the user's request from the list below.
+
+You MUST output the EXACT full model ID string exactly as shown below. Do not shorten it, do not use friendly names.
+
+Available models (use these exact strings):
+- openai/gpt-oss-120b:free
+- poolside/laguna-xs.2:free
+- nex-agi/nex-n2-pro:free
+- openai/gpt-oss-20b:free
+- google/gemma-4-31b-it:free
+- nvidia/nemotron-3-nano-30b-a3b:free
+
+Decision rules:
+- Coding, writing code, debugging, refactoring, building apps or tools → poolside/laguna-xs.2:free
+- Long research, analyzing long documents or books, very large context → openai/gpt-oss-120b:free
+- Complex planning, multi-step reasoning, strategic decisions → nex-agi/nex-n2-pro:free
+- Quick questions, short summaries, simple creative writing, high volume of fast replies → nvidia/nemotron-3-nano-30b-a3b:free or openai/gpt-oss-20b:free
+- Anything involving images or vision → google/gemma-4-31b-it:free
+
+Respond with ONLY this exact line, nothing else before or after:
+Model: <one of the exact model IDs listed above>
+`;
+
+export async function resolveSpaghettiOracle(messages: any[]): Promise<string> {
   try {
-    const lastUserMessage = messages[messages.length - 1]?.content || messages.toString();
+    // Extract last user message
+    const lastUser = [...messages].reverse().find(m => m.role === 'user');
+    let userPrompt = 'General request';
+    if (lastUser) {
+      if (typeof lastUser.content === 'string') {
+        userPrompt = lastUser.content.slice(0, 800);
+      } else if (Array.isArray(lastUser.content)) {
+        userPrompt = lastUser.content.map(p => p.text || '').join(' ').slice(0, 800);
+      }
+    }
+
+    const decider = getLanguageModel(DECIDER_MODEL_ID);
 
     const { text } = await generateText({
-      model: getLanguageModel(DECIDER_MODEL_ID),
+      model: decider,
       system: ROUTER_SYSTEM_PROMPT,
-      prompt: `Current user request: ${lastUserMessage}\n\nChoose the best model.`,
+      prompt: `Current user request:\n${userPrompt}\n\nChoose the best model and output exactly in the required format.`,
+      maxTokens: 50,
+      temperature: 0.1,
     });
 
-    const modelMatch = text.match(/Model:\s*(\S.+?)(?=\n|$)/i);
-    const chosenModel = modelMatch ? modelMatch[1].trim() : 'Nex-N2-Pro';
+    // Parse the Model: line
+    const match = text.match(/Model:\s*([\w\/\-:.@]+)/i);
+    let raw = match ? match[1].trim() : '';
 
-    // Validate against known good free models
-    const validModels = ['Owl Alpha', 'Laguna M.1', 'Laguna XS.2', 'Nemotron 3 Ultra', 'Nemotron 3 Super', 'Nex-N2-Pro', 'Nemotron Nano', 'Gemma 4 31B'];
-    const finalModel = validModels.some(m => chosenModel.includes(m)) ? chosenModel : 'Nex-N2-Pro';
+    // Map to full ID if it's a friendly/short name
+    let chosen = MODEL_ID_MAP[raw] || raw;
 
-    console.log(`[Spaghetti Oracle] Routed to: ${finalModel}`);
-    return finalModel;
+    // Final validation: must be one of the real IDs in chatModels
+    const isValid = chatModels.some(m => m.id === chosen);
 
-  } catch (error) {
-    console.error('[Spaghetti Oracle] Error:', error);
-    return 'Nex-N2-Pro'; // safe default
+    if (!isValid) {
+      console.warn(`[Oracle] Invalid or unavailable model chosen: ${raw} -> ${chosen}. Falling back.`);
+      chosen = SAFE_DEFAULT;
+    }
+
+    console.log(`[Spaghetti Oracle] Routed to: ${chosen} (raw LLM output: ${raw})`);
+    return chosen;
+
+  } catch (err) {
+    console.error('[Spaghetti Oracle] Resolution error, using safe default:', err);
+    return SAFE_DEFAULT;
   }
 }
