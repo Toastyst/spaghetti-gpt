@@ -87,7 +87,7 @@ export const chatModels: ChatModel[] = [
     id: "spaghetti-oracle",
     name: "Spaghetti Oracle",
     provider: "spaghetti",
-    description: "Intelligent router that analyzes your prompt and automatically selects the best free model for the task (Owl Alpha for deep research, Laguna for coding/agentic, Nemotron for reasoning, fast models for quick answers). Uses Nemotron Nano as decider + optional ensemble voting for critical steps. Best for complex or long sessions.",
+    description: "Intelligent router that analyzes your prompt and automatically selects the best free model for the task (Laguna for coding/agentic, Nemotron for reasoning, Nex for creative, 20b for everyday Q&A, 120b for hard problems). Uses Owl Alpha as the routing decider. Best for complex or long sessions.",
     isFree: true,
   },
 ];

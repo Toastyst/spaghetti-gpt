@@ -22,7 +22,7 @@ export type OracleSignals = {
 };
 
 const ORACLE_FALLBACK_MODEL = "openai/gpt-oss-20b:free";
-const ORACLE_ROUTER_MODEL = "nvidia/nemotron-3-nano-30b-a3b:free";
+const ORACLE_ROUTER_MODEL = "openrouter/owl-alpha";
 
 const ORACLE_MODEL_IDS = [
   "poolside/laguna-xs.2:free",
