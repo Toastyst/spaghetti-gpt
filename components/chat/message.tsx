@@ -81,6 +81,11 @@ const PurePreviewMessage = ({
 
   const isThinking = isAssistant && isLoading && !hasAnyContent;
 
+  // Oracle routing events were briefly persisted as message parts, leaving ghost bubbles.
+  if (isAssistant && !hasAnyContent && !isLoading) {
+    return null;
+  }
+
   const modelInfo =
     getModelInfoForMessage(message.id) ??
     extractModelInfoFromParts(message.parts) ??

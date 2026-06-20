@@ -235,7 +235,11 @@ export async function POST(request: Request) {
 
         if (chatModel === "spaghetti-oracle") {
           // Only do actual routing + indicator when user explicitly selects Spaghetti Oracle
-          dataStream.write({ type: "data-oracle-thinking", data: null } as any);
+          dataStream.write({
+            type: "data-oracle-thinking",
+            data: null,
+            transient: true,
+          } as any);
 
           try {
             const routed = await resolveSpaghettiOracle(modelMessages as ModelMessage[]);
@@ -243,9 +247,10 @@ export async function POST(request: Request) {
             modelDisplayName = routed.friendlyName;
             isOracleRouted = true;
           } catch {
-            activeModelId = DEFAULT_CHAT_MODEL;
+            activeModelId = "openai/gpt-oss-20b:free";
             modelDisplayName =
-              chatModels.find((m) => m.id === DEFAULT_CHAT_MODEL)?.name ?? DEFAULT_CHAT_MODEL;
+              chatModels.find((m) => m.id === activeModelId)?.name ??
+              activeModelId;
             isOracleRouted = false;
           }
         }
@@ -255,6 +260,7 @@ export async function POST(request: Request) {
         dataStream.write({
           type: "data-model-used",
           data: persistedModelInfo,
+          transient: true,
         } as any);
 
         const activeModelConfig = chatModels.find((m) => m.id === activeModelId);
