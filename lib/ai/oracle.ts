@@ -1,92 +1,45 @@
-import { generateText } from "ai";
-import { getLanguageModel } from "./providers";
-import { chatModels, type ChatModel } from "./models";
-
-// Local message type used by the router — narrow to what the code reads
-type RouterMessage = {
-  role: string;
-  content: string | Array<any> | { text?: string } | unknown;
-};
+import { generateText } from 'ai';
+import { getLanguageModel } from './providers';
+import { chatModels, type ChatModel } from './models';
 
 // The fast decider model (high throughput, cheap, good at classification)
-const DECIDER_MODEL_ID = "nvidia/nemotron-3-nano-30b-a3b:free" as const;
+const DECIDER_MODEL_ID = 'nvidia/nemotron-3-nano-30b-a3b:free' as const;
 
-// Valid real model IDs that the oracle can route to (exclude itself)
-const VALID_TARGET_MODELS = new Set(
-  chatModels
-    .map((m: ChatModel) => m.id)
-    .filter((id: string) => id !== "spaghetti-oracle")
-);
+const ROUTER_SYSTEM_PROMPT = `You are an expert routing assistant for Spaghetti-gpt.
+Your only job is to choose the single best free model from this list for the user's current request:
 
-const ROUTER_SYSTEM_PROMPT = `You are an expert model router for a free-tier AI chat app.
+- Owl Alpha → long research, massive context, huge documents, long sessions
+- Laguna M.1 or Laguna XS.2 → coding, debugging, building apps, agentic tasks
+- Nemotron 3 Ultra or Nemotron 3 Super → deep reasoning, planning, complex analysis
+- Nex-N2-Pro → balanced strong reasoning + speed, multi-step tasks
+- Nemotron Nano or Gemma 4 31B → quick answers, summaries, simple creative, high volume
 
-Your job is to analyze the user's request and choose the SINGLE best model from the list below for the task.
+Respond with ONLY this exact format:
+Model: [exact model name from the list above]
+Reason: [one short sentence why this model is best]`;
 
-Available models:
-- openai/gpt-oss-120b:free → General purpose, good default
-- poolside/laguna-xs.2:free → Best for coding, debugging, agentic tasks, building apps
-- nex-agi/nex-n2-pro:free → Strong reasoning, multi-step planning, balanced
-- openai/gpt-oss-20b:free → Fast general purpose
-- google/gemma-4-31b-it:free → Good with images/vision + general
-- nvidia/nemotron-3-nano-30b-a3b:free → Very fast, lightweight tasks
-
-Rules:
-- For coding, writing code, debugging, refactoring → choose poolside/laguna-xs.2:free
-- For deep research, long documents, complex analysis → choose openai/gpt-oss-120b:free
-- For planning, step-by-step reasoning, decisions → choose nex-agi/nex-n2-pro:free
-- For quick questions, summaries, simple creative → choose nvidia/nemotron-3-nano-30b-a3b:free or openai/gpt-oss-20b:free
-- If the user mentions images or vision → prefer google/gemma-4-31b-it:free
-
-Respond with EXACTLY this format (no extra text, no markdown):
-Model: <exact model id from the list above>
-Reason: <one short sentence explaining why>
-`;
-
-export async function resolveSpaghettiOracle(
-  messages: RouterMessage[]
-): Promise<string> {
+export async function resolveSpaghettiOracle(messages: any[]) {
   try {
-    // Get the last user message content
-    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
-    let promptContent = "General question";
-
-    if (lastUserMsg) {
-      if (typeof lastUserMsg.content === "string") {
-        promptContent = lastUserMsg.content;
-      } else if (Array.isArray(lastUserMsg.content)) {
-        promptContent = lastUserMsg.content
-          .map((part: any) => (typeof part === "string" ? part : part.text || ""))
-          .join(" ");
-      } else if (typeof lastUserMsg.content === "object" && lastUserMsg.content !== null) {
-        // handle { text: string } shape
-        // @ts-expect-error safe runtime check
-        promptContent = (lastUserMsg.content.text as string) ?? "General question";
-      }
-    }
-
-    const deciderModel = getLanguageModel(DECIDER_MODEL_ID);
+    const lastUserMessage = messages[messages.length - 1]?.content || messages.toString();
 
     const { text } = await generateText({
-      model: deciderModel,
+      model: getLanguageModel(DECIDER_MODEL_ID),
       system: ROUTER_SYSTEM_PROMPT,
-      prompt: `User request: ${promptContent}
-
-Choose the best model and respond in the exact format specified.`,
-      maxTokens: 80,
-      temperature: 0.1,
+      prompt: `Current user request: ${lastUserMessage}\n\nChoose the best model.`,
     });
 
-    // Parse "Model: xxx" line (case insensitive, tolerant)
-    const modelMatch = text.match(/Model:\s*([\w\/\-:.]+)/i);
-    let chosen = modelMatch?.[1]?.trim();
+    const modelMatch = text.match(/Model:\s*(\S.+?)(?=\n|$)/i);
+    const chosenModel = modelMatch ? modelMatch[1].trim() : 'Nex-N2-Pro';
 
-    if (!chosen || !VALID_TARGET_MODELS.has(chosen)) {
-      chosen = "openai/gpt-oss-120b:free";
-    }
+    // Validate against known good free models
+    const validModels = ['Owl Alpha', 'Laguna M.1', 'Laguna XS.2', 'Nemotron 3 Ultra', 'Nemotron 3 Super', 'Nex-N2-Pro', 'Nemotron Nano', 'Gemma 4 31B'];
+    const finalModel = validModels.some(m => chosenModel.includes(m)) ? chosenModel : 'Nex-N2-Pro';
 
-    return chosen;
+    console.log(`[Spaghetti Oracle] Routed to: ${finalModel}`);
+    return finalModel;
+
   } catch (error) {
-    console.error("[SpaghettiOracle] Resolution failed, using fallback:", error);
-    return "openai/gpt-oss-120b:free";
+    console.error('[Spaghetti Oracle] Error:', error);
+    return 'Nex-N2-Pro'; // safe default
   }
 }
