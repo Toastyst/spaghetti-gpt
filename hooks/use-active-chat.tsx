@@ -152,8 +152,8 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       },
     }),
     onData: (dataPart) => {
-      // Reset data stream on new oracle-thinking (start of response decision) so old events don't pollute hasOracleThinking / latest model
-      if (dataPart.type === "data-oracle-thinking") {
+      // Reset data stream at start of each response (on first data event) to prevent old events (e.g. previous oracle-thinking) from lingering and affecting hasOracleThinking / UI for normal prompts.
+      if (dataPart.type === "data-oracle-thinking" || dataPart.type === "data-model-used") {
         setDataStream([dataPart]);
       } else {
         setDataStream((ds) => (ds ? [...ds, dataPart] : [dataPart]));
