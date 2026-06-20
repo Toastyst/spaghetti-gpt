@@ -1,29 +1,437 @@
-    if (chatModel === "spaghetti-oracle") {
-      dataStream.write({
-        type: "data-oracle-thinking",
-        data: { status: "routing" },
-      });
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateId,
+  stepCountIs,
+  streamText,
+  type ModelMessage,
+} from "ai";
+import { checkBotId } from "botid/server";
+import { after } from "next/server";
+import { createResumableStreamContext } from "resumable-stream";
+import { auth, type UserType } from "@/app/(auth)/auth";
+import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import {
+  allowedModelIds,
+  chatModels,
+  DEFAULT_CHAT_MODEL,
+  getCapabilities,
+} from "@/lib/ai/models";
+import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
+import { getAiGatewayTools, getLanguageModel, useAiGateway } from "@/lib/ai/providers";
+import { createDocument } from "@/lib/ai/tools/create-document";
+import { editDocument } from "@/lib/ai/tools/edit-document";
+import { getWeather } from "@/lib/ai/tools/get-weather";
+import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
+import { updateDocument } from "@/lib/ai/tools/update-document";
+import { webSearch } from "@/lib/ai/tools/web-search";
+import { searchSpaghettiStories } from "@/lib/ai/tools/search-stories";
+import { browsePage } from "@/lib/ai/tools/browse-page";
+import { resolveSpaghettiOracle } from "@/lib/ai/oracle";
+import { isProductionEnvironment } from "@/lib/constants";
+import {
+  createStreamId,
+  deleteChatById,
+  getChatById,
+  getMessageCountByUserId,
+  getMessagesByChatId,
+  getUserById,
+  saveChat,
+  saveMessages,
+  updateChatTitleById,
+  updateMessage,
+} from "@/lib/db/queries";
+import type { DBMessage } from "@/lib/db/schema";
+import { ChatbotError } from "@/lib/errors";
+import { checkIpRateLimit } from "@/lib/ratelimit";
+import type { ChatMessage } from "@/lib/types";
+import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import { generateTitleFromUserMessage } from "../../actions";
+import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
-      try {
-        const routed = await resolveSpaghettiOracle(modelMessages);
-        activeModelId = routed.id;
-        modelDisplayName = routed.friendlyName;
-        isOracleRouted = true;
-      } catch (err) {
-        console.error("[Oracle] Failed to resolve, falling back", err);
-        activeModelId = DEFAULT_CHAT_MODEL;
-        modelDisplayName = "Owl Alpha";
-        isOracleRouted = true;
-      }
-    } else {
-      const modelInfo = chatModels.find((m) => m.id === chatModel);
-      modelDisplayName = modelInfo?.name || chatModel;
+function getRequestGeo(request: Request) {
+  const geo = (request as Request & { geo?: any }).geo;
+  return {
+    longitude: typeof geo?.longitude === "number" ? geo.longitude : null,
+    latitude: typeof geo?.latitude === "number" ? geo.latitude : null,
+    city: typeof geo?.city === "string" ? geo.city : null,
+    country: typeof geo?.country === "string" ? geo.country : null,
+  };
+}
+
+function getRequestIp(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp;
+  }
+
+  return "127.0.0.1";
+}
+
+export const maxDuration = 60;
+
+function getStreamContext() {
+  try {
+    return createResumableStreamContext({ waitUntil: after });
+  } catch (_) {
+    return null;
+  }
+}
+
+export { getStreamContext };
+
+export async function POST(request: Request) {
+  let requestBody: PostRequestBody;
+
+  try {
+    const json = await request.json();
+    requestBody = postRequestBodySchema.parse(json);
+  } catch (_) {
+    return new ChatbotError("bad_request:api").toResponse();
+  }
+
+  try {
+    const { id, message, messages, selectedChatModel, selectedVisibilityType } =
+      requestBody;
+
+    const [, session] = await Promise.all([
+      checkBotId().catch(() => null),
+      auth(),
+    ]);
+
+    if (!session?.user) {
+      return new ChatbotError("unauthorized:chat").toResponse();
     }
 
-    dataStream.write({
-      type: "data-model-used",
-      data: {
-        model: modelDisplayName,
-        isOracle: isOracleRouted,
+    const dbUser = await getUserById({ id: session.user.id });
+    if (!dbUser) {
+      return new ChatbotError("unauthorized:chat", "User not found").toResponse();
+    }
+
+    const chatModel = allowedModelIds.has(selectedChatModel)
+      ? selectedChatModel
+      : DEFAULT_CHAT_MODEL;
+
+    await checkIpRateLimit(getRequestIp(request));
+
+    const userType: UserType = session.user.type;
+
+    const messageCount = await getMessageCountByUserId({
+      id: session.user.id,
+      differenceInHours: 1,
+    });
+
+    if (messageCount > entitlementsByUserType[userType].maxMessagesPerHour) {
+      return new ChatbotError("rate_limit:chat").toResponse();
+    }
+
+    const isToolApprovalFlow = Boolean(messages);
+
+    const chat = await getChatById({ id });
+    let messagesFromDb: DBMessage[] = [];
+    let titlePromise: Promise<string> | null = null;
+
+    if (chat) {
+      if (chat.userId !== session.user.id) {
+        return new ChatbotError("forbidden:chat").toResponse();
+      }
+      messagesFromDb = await getMessagesByChatId({ id });
+    } else if (message?.role === "user") {
+      await saveChat({
+        id,
+        userId: session.user.id,
+        title: "New chat",
+        visibility: selectedVisibilityType,
+      });
+      titlePromise = generateTitleFromUserMessage({ message });
+    }
+
+    let uiMessages: ChatMessage[];
+
+    if (isToolApprovalFlow && messages) {
+      const dbMessages = convertToUIMessages(messagesFromDb);
+      const approvalStates = new Map(
+        messages.flatMap(
+          (m) =>
+            m.parts
+              ?.filter(
+                (p: Record<string, unknown>) =>
+                  p.state === "approval-responded" ||
+                  p.state === "output-denied"
+              )
+              .map((p: Record<string, unknown>) => [
+                String(p.toolCallId ?? ""),
+                p,
+              ]) ?? []
+        )
+      );
+      uiMessages = dbMessages.map((msg) => ({
+        ...msg,
+        parts: msg.parts.map((part) => {
+          if (
+            "toolCallId" in part &&
+            approvalStates.has(String(part.toolCallId))
+          ) {
+            return { ...part, ...approvalStates.get(String(part.toolCallId)) };
+          }
+          return part;
+        }),
+      })) as ChatMessage[];
+    } else {
+      uiMessages = [
+        ...convertToUIMessages(messagesFromDb),
+        message as ChatMessage,
+      ];
+    }
+
+    const { longitude, latitude, city, country } = getRequestGeo(request);
+
+    const requestHints: RequestHints = {
+      longitude,
+      latitude,
+      city,
+      country,
+    };
+
+    if (message?.role === "user") {
+      await saveMessages({
+        messages: [
+          {
+            chatId: id,
+            id: message.id,
+            role: "user",
+            parts: message.parts,
+            attachments: [],
+            createdAt: new Date(),
+          },
+        ],
+      });
+    }
+
+    const modelConfig = chatModels.find((m) => m.id === chatModel);
+    const modelCapabilities = await getCapabilities();
+    const capabilities = modelCapabilities[chatModel];
+    const _isReasoningModel = capabilities?.reasoning === true;
+    const _supportsTools = capabilities?.tools === true;
+
+    const modelMessages = await convertToModelMessages(uiMessages);
+
+    const stream = createUIMessageStream({
+      originalMessages: isToolApprovalFlow ? uiMessages : undefined,
+      execute: async ({ writer: dataStream }) => {
+        // Spaghetti Oracle routing
+        dataStream.write({ type: "data-oracle-thinking", data: null } as any);
+
+        let activeModelId = chatModel;
+        let modelDisplayName =
+          chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
+        let isOracleRouted = false;
+
+        try {
+          const routed = await resolveSpaghettiOracle(modelMessages as ModelMessage[]);
+          activeModelId = routed.id;
+          modelDisplayName = routed.friendlyName;
+          isOracleRouted = true;
+        } catch {
+          // keep selected as fallback
+          activeModelId = chatModel;
+          modelDisplayName =
+            chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
+          isOracleRouted = false;
+        }
+
+        dataStream.write({
+          type: "data-model-used",
+          data: { model: modelDisplayName, isOracle: isOracleRouted },
+        } as any);
+
+        const activeModelConfig = chatModels.find((m) => m.id === activeModelId);
+        const activeCapabilities = modelCapabilities[activeModelId];
+        const activeIsReasoningModel = activeCapabilities?.reasoning === true;
+        const activeSupportsTools = activeCapabilities?.tools !== false;
+
+        const result = streamText({
+          model: getLanguageModel(activeModelId),
+          system: systemPrompt({ requestHints, supportsTools: activeSupportsTools }),
+          messages: modelMessages,
+          stopWhen: stepCountIs(5),
+          experimental_activeTools:
+            activeIsReasoningModel && !activeSupportsTools
+              ? []
+              : [
+                  "getWeather",
+                  "createDocument",
+                  "editDocument",
+                  "updateDocument",
+                  "requestSuggestions",
+                  "searchSpaghettiStories",
+                  "webSearch",
+                  "browsePage",
+                  ...(useAiGateway ? ["webSearchGateway"] : []),
+                ],
+          providerOptions: {
+            ...(activeModelConfig?.reasoningEffort && {
+              openai: { reasoningEffort: activeModelConfig.reasoningEffort },
+            }),
+          },
+          tools: {
+            getWeather,
+            createDocument: createDocument({
+              session,
+              dataStream,
+              modelId: activeModelId,
+            }),
+            editDocument: editDocument({ dataStream, session }),
+            updateDocument: updateDocument({
+              session,
+              dataStream,
+              modelId: activeModelId,
+            }),
+            requestSuggestions: requestSuggestions({
+              session,
+              dataStream,
+              modelId: activeModelId,
+            }),
+            searchSpaghettiStories,
+            webSearch,
+            browsePage,
+            ...getAiGatewayTools(), // This adds webSearch from Gateway (uses $5 free credits)
+          } as any,
+          experimental_telemetry: {
+            isEnabled: isProductionEnvironment,
+            functionId: "stream-text",
+          },
+        });
+
+        dataStream.merge(
+          result.toUIMessageStream({ sendReasoning: activeIsReasoningModel })
+        );
+
+        if (titlePromise) {
+          try {
+            const title = await titlePromise;
+            dataStream.write({ type: "data-chat-title", data: title });
+            updateChatTitleById({ chatId: id, title });
+          } catch (_) {
+            /* non-fatal */
+          }
+        }
+      },
+      generateId: generateUUID,
+      onFinish: async ({ messages: finishedMessages }) => {
+        if (isToolApprovalFlow) {
+          for (const finishedMsg of finishedMessages) {
+            const existingMsg = uiMessages.find((m) => m.id === finishedMsg.id);
+            if (existingMsg) {
+              await updateMessage({
+                id: finishedMsg.id,
+                parts: finishedMsg.parts,
+              });
+            } else {
+              await saveMessages({
+                messages: [
+                  {
+                    id: finishedMsg.id,
+                    role: finishedMsg.role,
+                    parts: finishedMsg.parts,
+                    createdAt: new Date(),
+                    attachments: [],
+                    chatId: id,
+                  },
+                ],
+              });
+            }
+          }
+        } else if (finishedMessages.length > 0) {
+          await saveMessages({
+            messages: finishedMessages.map((currentMessage) => ({
+              id: currentMessage.id,
+              role: currentMessage.role,
+              parts: currentMessage.parts,
+              createdAt: new Date(),
+              attachments: [],
+              chatId: id,
+            })),
+          });
+        }
+      },
+      onError: (error) => {
+        if (error instanceof ChatbotError) {
+          return error.message;
+        }
+
+        return "AI provider unavailable. Please configure an alternative provider (for example, set OPENROUTER_API_KEY) or enable Vercel AI Gateway in your deployment settings.";
       },
     });
+
+    return createUIMessageStreamResponse({
+      stream,
+      async consumeSseStream({ stream: sseStream }) {
+        if (!process.env.REDIS_URL) {
+          return;
+        }
+        try {
+          const streamContext = getStreamContext();
+          if (streamContext) {
+            const streamId = generateId();
+            await createStreamId({ streamId, chatId: id });
+            await streamContext.createNewResumableStream(
+              streamId,
+              () => sseStream
+            );
+          }
+        } catch (_) {
+          /* non-critical */
+        }
+      },
+    });
+  } catch (error) {
+    const requestId = request.headers.get("x-request-id");
+
+    if (error instanceof ChatbotError) {
+      return error.toResponse();
+    }
+
+    // Do not map raw provider messages to the activate-gateway error code here.
+    // Return a generic offline response to avoid client-side UI triggers.
+
+    console.error("Unhandled error in chat API:", error, { requestId });
+    return new ChatbotError("offline:chat").toResponse();
+  }
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return new ChatbotError("bad_request:api").toResponse();
+  }
+
+  const session = await auth();
+
+  if (!session?.user) {
+    return new ChatbotError("unauthorized:chat").toResponse();
+  }
+
+  const dbUser = await getUserById({ id: session.user.id });
+  if (!dbUser) {
+    return new ChatbotError("unauthorized:chat", "User not found").toResponse();
+  }
+
+  const chat = await getChatById({ id });
+
+  if (chat?.userId !== session.user.id) {
+    return new ChatbotError("forbidden:chat").toResponse();
+  }
+
+  const deletedChat = await deleteChatById({ id });
+
+  return Response.json(deletedChat, { status: 200 });
+}

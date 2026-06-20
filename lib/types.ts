@@ -40,6 +40,8 @@ export type CustomUIDataTypes = {
   clear: null;
   finish: null;
   "chat-title": string;
+  "oracle-thinking": null;
+  "model-used": { model: string; isOracle: boolean; reason?: string };
 };
 
 export type ChatMessage = UIMessage<

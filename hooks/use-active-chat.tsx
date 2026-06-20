@@ -52,7 +52,7 @@ type ActiveChatContextValue = {
 const ActiveChatContext = createContext<ActiveChatContextValue | null>(null);
 
 function extractChatId(pathname: string): string | null {
-  const match = pathname.match(/\/chat\/([^/]+)/);
+  const match = pathname.match(/\/chat\/([^\/]+)/);
   return match ? match[1] : null;
 }
 
@@ -153,6 +153,32 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
     }),
     onData: (dataPart) => {
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
+
+      if (dataPart.type === "data-model-used") {
+        const modelInfo = dataPart.data as { model: string; isOracle: boolean; reason?: string };
+        // Attach to the most recent assistant message so the pill can render for historical + current
+        setMessages((current) => {
+          const lastAssistantIndex = [...current]
+            .map((m, i) => ({ m, i }))
+            .reverse()
+            .find(({ m }) => m.role === "assistant")?.i;
+
+          if (lastAssistantIndex != null) {
+            const targetId = current[lastAssistantIndex].id;
+            return current.map((msg) =>
+              msg.id === targetId
+                ? {
+                    ...msg,
+                    // Attach model info for rendering the pill
+                    // @ts-expect-error - augmenting message for UI only
+                    modelInfo,
+                  }
+                : msg
+            );
+          }
+          return current;
+        });
+      }
     },
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
