@@ -3,12 +3,26 @@ import { z } from "zod";
 import { chatModels } from "./models";
 import { getLanguageModel } from "./providers";
 
+export type OracleRoutingMethod = "llm" | "vision" | "heuristic" | "fallback";
+
 export type OracleResult = {
   id: string;
   friendlyName: string;
+  reason: string;
+  method: OracleRoutingMethod;
+};
+
+export type OracleSignals = {
+  coding: number;
+  creative: number;
+  reasoning: number;
+  vision: boolean;
+  latestUserText: string;
+  heuristicSuggestion: string | null;
 };
 
 const ORACLE_FALLBACK_MODEL = "openai/gpt-oss-20b:free";
+const ORACLE_ROUTER_MODEL = "nvidia/nemotron-3-nano-30b-a3b:free";
 
 const ORACLE_MODEL_IDS = [
   "poolside/laguna-xs.2:free",
@@ -21,51 +35,113 @@ const ORACLE_MODEL_IDS = [
 
 const oracleDecisionSchema = z.object({
   modelId: z.enum(ORACLE_MODEL_IDS),
-  reason: z.string().max(120),
+  reason: z.string().max(160),
 });
 
 const ORACLE_SYSTEM_PROMPT = `You are SpaghettiOracle, an expert model router for a chat application.
 
-Your job: pick the single best model for the user's LATEST message. Use prior messages only for context.
+Pick the single best model for the user's LATEST message. Prior conversation is context only.
 
-Available models (return the exact modelId):
+Models (return exact modelId):
 
-1. poolside/laguna-xs.2:free
-   Best for: writing code, debugging, refactors, APIs, scripts, configs, devops, technical implementation, agentic/tool-heavy tasks.
+- poolside/laguna-xs.2:free — code, debugging, refactors, APIs, scripts, configs, devops, implementation
+- openai/gpt-oss-20b:free — everyday Q&A, explanations, summaries, casual chat, general knowledge
+- nex-agi/nex-n2-pro:free — creative writing, brainstorming, storytelling, conversational tone
+- google/gemma-4-31b-it:free — vision / image understanding ONLY
+- nvidia/nemotron-3-nano-30b-a3b:free — math, logic puzzles, proofs, step-by-step reasoning, comparing options
+- openai/gpt-oss-120b:free — exceptionally complex multi-step analysis only; avoid for routine tasks
 
-2. openai/gpt-oss-20b:free  ← DEFAULT when unsure
-   Best for: everyday Q&A, explanations, summaries, how-tos, casual chat, quick factual answers, general knowledge.
+Rules:
+- Match specialty models when the request clearly fits; do not default everything to 20b.
+- Coding → Laguna. Creative → Nex. Math/logic → Nemotron. Vision → Gemma. Hard research → 120b.
+- Use 20b for ordinary questions with no strong specialty signal.
+- Vary choices across a conversation when task types differ.
+- In reason, cite the specific signal from the user message (e.g. "code request", "creative poem", "math proof").`;
 
-3. nex-agi/nex-n2-pro:free
-   Best for: creative writing, brainstorming, storytelling, friendly conversational tone, light banter.
-
-4. google/gemma-4-31b-it:free
-   Best for: image understanding and vision tasks ONLY (user attached images or asks about visual content).
-
-5. nvidia/nemotron-3-nano-30b-a3b:free
-   Best for: logic puzzles, math, step-by-step reasoning, structured analysis, comparing options.
-
-6. openai/gpt-oss-120b:free  ← use sparingly
-   Best for: exceptionally complex multi-step reasoning, deep research synthesis, or very long detailed analysis.
-   Do NOT pick for: simple questions, casual chat, coding (use Laguna), or anything a smaller model can handle.
-
-Routing rules:
-- Default to openai/gpt-oss-20b:free unless there is a clear specialty match.
-- Coding or implementation → poolside/laguna-xs.2:free (never 120b).
-- Images/vision in the request → google/gemma-4-31b-it:free.
-- Creative writing → nex-agi/nex-n2-pro:free.
-- Logic/math/puzzles → nvidia/nemotron-3-nano-30b-a3b:free.
-- Reserve openai/gpt-oss-120b:free for genuinely hard problems only.
-- Vary your choices across a conversation; do not route every message to the same model.`;
+const CODING_PATTERN =
+  /\b(code|coding|debug|refactor|implement|function|class|api|script|typescript|javascript|python|rust|sql|regex|npm|docker|git|compile|syntax|error|stack trace|bug)\b/i;
+const CREATIVE_PATTERN =
+  /\b(poem|story|song|lyrics|creative|brainstorm|write me a|fiction|character|plot|haiku|novel)\b/i;
+const REASONING_PATTERN =
+  /\b(prove|proof|calculate|equation|math|logic|puzzle|riddle|step by step|analyze|compare|evaluate|theorem|probability|derivative|integral)\b/i;
 
 function getFriendlyName(modelId: string): string {
   return chatModels.find((m) => m.id === modelId)?.name ?? modelId;
 }
 
-function getFallback(): OracleResult {
+function getFallback(reason: string): OracleResult {
   return {
     id: ORACLE_FALLBACK_MODEL,
     friendlyName: getFriendlyName(ORACLE_FALLBACK_MODEL),
+    reason,
+    method: "fallback",
+  };
+}
+
+function extractTextFromMessage(message: ModelMessage): string {
+  if (typeof message.content === "string") {
+    return message.content;
+  }
+  if (!Array.isArray(message.content)) {
+    return "";
+  }
+  return message.content
+    .map((part) => {
+      if (typeof part === "string") {
+        return part;
+      }
+      if (
+        typeof part === "object" &&
+        part !== null &&
+        "type" in part &&
+        part.type === "text" &&
+        "text" in part &&
+        typeof part.text === "string"
+      ) {
+        return part.text;
+      }
+      return "";
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+export function extractLatestUserText(messages: ModelMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "user") {
+      return extractTextFromMessage(messages[i]).trim();
+    }
+  }
+  return "";
+}
+
+export function analyzeOracleSignals(
+  messages: ModelMessage[]
+): OracleSignals {
+  const latestUserText = extractLatestUserText(messages);
+  const coding = CODING_PATTERN.test(latestUserText) ? 1 : 0;
+  const creative = CREATIVE_PATTERN.test(latestUserText) ? 1 : 0;
+  const reasoning = REASONING_PATTERN.test(latestUserText) ? 1 : 0;
+  const vision = messageHasImages(messages);
+
+  let heuristicSuggestion: string | null = null;
+  if (vision) {
+    heuristicSuggestion = "google/gemma-4-31b-it:free";
+  } else if (coding && !creative) {
+    heuristicSuggestion = "poolside/laguna-xs.2:free";
+  } else if (creative && !coding) {
+    heuristicSuggestion = "nex-agi/nex-n2-pro:free";
+  } else if (reasoning && !coding) {
+    heuristicSuggestion = "nvidia/nemotron-3-nano-30b-a3b:free";
+  }
+
+  return {
+    coding,
+    creative,
+    reasoning,
+    vision,
+    latestUserText,
+    heuristicSuggestion,
   };
 }
 
@@ -92,23 +168,54 @@ function messageHasImages(messages: ModelMessage[]): boolean {
   return false;
 }
 
+function logOracleDecision(payload: Record<string, unknown>) {
+  console.log(
+    JSON.stringify({
+      tag: "SpaghettiOracle",
+      routerModel: ORACLE_ROUTER_MODEL,
+      ...payload,
+    })
+  );
+}
+
 export async function resolveSpaghettiOracle(
   messages: ModelMessage[]
 ): Promise<OracleResult> {
-  const fallback = getFallback();
+  const startedAt = Date.now();
+  const signals = analyzeOracleSignals(messages);
 
   if (!messages || messages.length === 0) {
-    return fallback;
+    const result = getFallback("No messages to route");
+    logOracleDecision({
+      method: result.method,
+      modelId: result.id,
+      reason: result.reason,
+      signals,
+      durationMs: Date.now() - startedAt,
+    });
+    return result;
   }
 
-  if (messageHasImages(messages)) {
+  if (signals.vision) {
     const visionModel = "google/gemma-4-31b-it:free";
-    console.log("[SpaghettiOracle] vision content detected →", visionModel);
-    return { id: visionModel, friendlyName: getFriendlyName(visionModel) };
+    const result: OracleResult = {
+      id: visionModel,
+      friendlyName: getFriendlyName(visionModel),
+      reason: "Image or vision content detected in message",
+      method: "vision",
+    };
+    logOracleDecision({
+      method: result.method,
+      modelId: result.id,
+      reason: result.reason,
+      signals,
+      durationMs: Date.now() - startedAt,
+    });
+    return result;
   }
 
   try {
-    const oracleModel = getLanguageModel("openai/gpt-oss-20b:free");
+    const oracleModel = getLanguageModel(ORACLE_ROUTER_MODEL);
     const recent = messages.slice(-8);
 
     const { object } = await generateObject({
@@ -116,25 +223,40 @@ export async function resolveSpaghettiOracle(
       schema: oracleDecisionSchema,
       system: ORACLE_SYSTEM_PROMPT,
       messages: recent,
-      maxOutputTokens: 128,
-      temperature: 0.4,
+      maxOutputTokens: 160,
+      temperature: 0.5,
     });
 
-    const modelId = object.modelId;
-    console.log(
-      "[SpaghettiOracle] routed to",
-      modelId,
-      `(${getFriendlyName(modelId)})`,
-      "—",
-      object.reason
-    );
+    const result: OracleResult = {
+      id: object.modelId,
+      friendlyName: getFriendlyName(object.modelId),
+      reason: object.reason,
+      method: "llm",
+    };
 
-    return { id: modelId, friendlyName: getFriendlyName(modelId) };
+    logOracleDecision({
+      method: result.method,
+      modelId: result.id,
+      reason: result.reason,
+      signals,
+      heuristicSuggestion: signals.heuristicSuggestion,
+      heuristicAgrees: signals.heuristicSuggestion === result.id,
+      promptPreview: signals.latestUserText.slice(0, 200),
+      durationMs: Date.now() - startedAt,
+    });
+
+    return result;
   } catch (err) {
-    console.error(
-      "[SpaghettiOracle] error during routing, using fallback:",
-      err
-    );
-    return fallback;
+    const message = err instanceof Error ? err.message : String(err);
+    const result = getFallback(`Router error: ${message}`);
+    logOracleDecision({
+      method: result.method,
+      modelId: result.id,
+      reason: result.reason,
+      signals,
+      error: message,
+      durationMs: Date.now() - startedAt,
+    });
+    return result;
   }
 }

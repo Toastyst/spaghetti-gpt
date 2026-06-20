@@ -41,7 +41,12 @@ export type CustomUIDataTypes = {
   finish: null;
   "chat-title": string;
   "oracle-thinking": null;
-  "model-used": { model: string; isOracle: boolean; reason?: string };
+  "model-used": {
+    model: string;
+    isOracle: boolean;
+    reason?: string;
+    method?: "llm" | "vision" | "heuristic" | "fallback";
+  };
 };
 
 export type ChatMessage = UIMessage<
@@ -50,7 +55,12 @@ export type ChatMessage = UIMessage<
   ChatTools
 > & {
   // UI-only augmentation for model routing pill (attached via use-active-chat onData)
-  modelInfo?: { model: string; isOracle: boolean; reason?: string };
+  modelInfo?: {
+    model: string;
+    isOracle: boolean;
+    reason?: string;
+    method?: "llm" | "vision" | "heuristic" | "fallback";
+  };
 };
 
 export type Attachment = {
