@@ -262,6 +262,7 @@ export async function POST(request: Request) {
           model: getLanguageModel(activeModelId),
           system: systemPrompt({ requestHints, supportsTools: activeSupportsTools }),
           messages: modelMessages,
+          maxOutputTokens: 4096,
           stopWhen: stepCountIs(5),
           experimental_activeTools:
             activeIsReasoningModel && !activeSupportsTools
@@ -316,13 +317,12 @@ export async function POST(request: Request) {
         );
 
         if (titlePromise) {
-          try {
-            const title = await titlePromise;
+          titlePromise.then((title) => {
             dataStream.write({ type: "data-chat-title", data: title });
             updateChatTitleById({ chatId: id, title });
-          } catch (_) {
+          }).catch(() => {
             /* non-fatal */
-          }
+          });
         }
       },
       generateId: generateUUID,

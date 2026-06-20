@@ -73,10 +73,10 @@ Available models (use the EXACT full slug on the left):
 Rules:
 - Output ONLY the exact full slug of the chosen model.
 - No explanations, no quotes, no markdown, no extra words.
-- If the query is about coding, implementation, debugging, or structured work → prefer poolside/laguna-xs.2:free
-- If the query benefits from strong general reasoning or long context → prefer openai/gpt-oss-120b:free
-- If the query is simple or needs speed → prefer openai/gpt-oss-20b:free or nex-agi/nex-n2-pro:free
-- If the user asks for image understanding / vision → prefer google/gemma-4-31b-it:free or nex-agi/nex-n2-pro:free
+- If the query is about coding, implementation, debugging, agentic tasks, or tools → prefer poolside/laguna-xs.2:free
+- If the query is simple, casual, quick, creative writing, or speed is important → prefer openai/gpt-oss-20b:free or nex-agi/nex-n2-pro:free
+- If the user asks for image understanding / vision → prefer google/gemma-4-31b-it:free
+- For general questions, explanations, news, or most other cases → prefer openai/gpt-oss-20b:free for balance (use 120b only for very complex reasoning or very long context)
 - Always return one of the exact slugs listed above.`;
 
 export async function resolveSpaghettiOracle(
@@ -121,7 +121,7 @@ export async function resolveSpaghettiOracle(
 
     // Try to find an id that appears in the raw output
     for (const m of chatModels) {
-      if (raw.includes(m.id)) {
+      if (raw.toLowerCase().includes(m.id.toLowerCase())) {
         console.log("[SpaghettiOracle] routed (substring) to", m.id);
         return { id: m.id, friendlyName: m.name };
       }
