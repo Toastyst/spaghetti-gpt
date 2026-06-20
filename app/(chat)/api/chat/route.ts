@@ -225,10 +225,7 @@ export async function POST(request: Request) {
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
-        // Oracle routing indicator (for "Routing..." shimmer and model pill UI)
-        // The actual model used respects the user's selectedChatModel from the selector.
-        dataStream.write({ type: "data-oracle-thinking", data: null } as any);
-
+        // Emit the model used for the UI pill (no oracle routing for normal selected models)
         const activeModelId = chatModel;
         const modelDisplayName =
           chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
