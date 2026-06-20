@@ -20,7 +20,7 @@
       modelDisplayName = modelInfo?.name || chatModel;
     }
 
-    // Send model info so frontend can show the pill at the bottom
+    // Send model info to frontend for bottom pill (works for Oracle + normal models)
     dataStream.write({
       type: "data-model-used",
       data: {
