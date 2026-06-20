@@ -1,3 +1,55 @@
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateId,
+  stepCountIs,
+  streamText,
+  type ModelMessage,
+} from "ai";
+import { checkBotId } from "botid/server";
+import { after } from "next/server";
+import { createResumableStreamContext } from "resumable-stream";
+import { auth, type UserType } from "@/app/(auth)/auth";
+import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import {
+  allowedModelIds,
+  chatModels,
+  DEFAULT_CHAT_MODEL,
+  getCapabilities,
+} from "@/lib/ai/models";
+import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
+import { getAiGatewayTools, getLanguageModel, useAiGateway } from "@/lib/ai/providers";
+import { createDocument } from "@/lib/ai/tools/create-document";
+import { editDocument } from "@/lib/ai/tools/edit-document";
+import { getWeather } from "@/lib/ai/tools/get-weather";
+import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
+import { updateDocument } from "@/lib/ai/tools/update-document";
+import { webSearch } from "@/lib/ai/tools/web-search";
+import { searchSpaghettiStories } from "@/lib/ai/tools/search-stories";
+import { browsePage } from "@/lib/ai/tools/browse-page";
+import { resolveSpaghettiOracle } from "@/lib/ai/oracle";
+import { isProductionEnvironment } from "@/lib/constants";
+import {
+  createStreamId,
+  deleteChatById,
+  getChatById,
+  getMessageCountByUserId,
+  getMessagesByChatId,
+  getUserById,
+  saveChat,
+  saveMessages,
+  updateChatTitleById,
+  updateMessage,
+} from "@/lib/db/queries";
+import type { DBMessage } from "@/lib/db/schema";
+import { ChatbotError } from "@/lib/errors";
+import { checkIpRateLimit } from "@/lib/ratelimit";
+import type { ChatMessage } from "@/lib/types";
+import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import { generateTitleFromUserMessage } from "../../actions";
+import { type PostRequestBody, postRequestBodySchema } from "./schema";
+
 function getRequestGeo(request: Request) {
   const geo = (request as Request & { geo?: any }).geo;
   return {
@@ -21,55 +73,6 @@ function getRequestIp(request: Request) {
 
   return "127.0.0.1";
 }
-
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  createUIMessageStreamResponse,
-  generateId,
-  stepCountIs,
-  streamText,
-} from "ai";
-import { checkBotId } from "botid/server";
-import { after } from "next/server";
-import { createResumableStreamContext } from "resumable-stream";
-import { auth, type UserType } from "@/app/(auth)/auth";
-import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import {
-  allowedModelIds,
-  chatModels,
-  DEFAULT_CHAT_MODEL,
-  getCapabilities,
-} from "@/lib/ai/models";
-import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
-import { getAiGatewayTools, getLanguageModel, useAiGateway } from "@/lib/ai/providers";
-import { createDocument } from "@/lib/ai/tools/create-document";
-import { editDocument } from "@/lib/ai/tools/edit-document";
-import { getWeather } from "@/lib/ai/tools/get-weather";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { updateDocument } from "@/lib/ai/tools/update-document";
-import { webSearch } from "@/lib/ai/tools/web-search";
-import { searchSpaghettiStories } from "@/lib/ai/tools/search-stories";
-import { isProductionEnvironment } from "@/lib/constants";
-import {
-  createStreamId,
-  deleteChatById,
-  getChatById,
-  getMessageCountByUserId,
-  getMessagesByChatId,
-  getUserById,
-  saveChat,
-  saveMessages,
-  updateChatTitleById,
-  updateMessage,
-} from "@/lib/db/queries";
-import type { DBMessage } from "@/lib/db/schema";
-import { ChatbotError } from "@/lib/errors";
-import { checkIpRateLimit } from "@/lib/ratelimit";
-import type { ChatMessage } from "@/lib/types";
-import { convertToUIMessages, generateUUID } from "@/lib/utils";
-import { generateTitleFromUserMessage } from "../../actions";
-import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
 export const maxDuration = 60;
 
@@ -214,21 +217,52 @@ export async function POST(request: Request) {
     const modelConfig = chatModels.find((m) => m.id === chatModel);
     const modelCapabilities = await getCapabilities();
     const capabilities = modelCapabilities[chatModel];
-    const isReasoningModel = capabilities?.reasoning === true;
-    const supportsTools = capabilities?.tools === true;
+    const _isReasoningModel = capabilities?.reasoning === true;
+    const _supportsTools = capabilities?.tools === true;
 
     const modelMessages = await convertToModelMessages(uiMessages);
 
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
+        // Spaghetti Oracle routing
+        dataStream.write({ type: "data-oracle-thinking", data: null } as any);
+
+        let activeModelId = chatModel;
+        let modelDisplayName =
+          chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
+        let isOracleRouted = false;
+
+        try {
+          const routed = await resolveSpaghettiOracle(modelMessages as ModelMessage[]);
+          activeModelId = routed.id;
+          modelDisplayName = routed.friendlyName;
+          isOracleRouted = true;
+        } catch {
+          // keep selected as fallback
+          activeModelId = chatModel;
+          modelDisplayName =
+            chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
+          isOracleRouted = false;
+        }
+
+        dataStream.write({
+          type: "data-model-used",
+          data: { model: modelDisplayName, isOracle: isOracleRouted },
+        } as any);
+
+        const activeModelConfig = chatModels.find((m) => m.id === activeModelId);
+        const activeCapabilities = modelCapabilities[activeModelId];
+        const activeIsReasoningModel = activeCapabilities?.reasoning === true;
+        const activeSupportsTools = activeCapabilities?.tools !== false;
+
         const result = streamText({
-          model: getLanguageModel(chatModel),
-          system: systemPrompt({ requestHints, supportsTools }),
+          model: getLanguageModel(activeModelId),
+          system: systemPrompt({ requestHints, supportsTools: activeSupportsTools }),
           messages: modelMessages,
           stopWhen: stepCountIs(5),
           experimental_activeTools:
-            isReasoningModel && !supportsTools
+            activeIsReasoningModel && !activeSupportsTools
               ? []
               : [
                   "getWeather",
@@ -237,12 +271,13 @@ export async function POST(request: Request) {
                   "updateDocument",
                   "requestSuggestions",
                   "searchSpaghettiStories",
-                  ...(process.env.SEARXNG_URL ? ["webSearch"] : []),
+                  "webSearch",
+                  "browsePage",
                   ...(useAiGateway ? ["webSearchGateway"] : []),
                 ],
           providerOptions: {
-            ...(modelConfig?.reasoningEffort && {
-              openai: { reasoningEffort: modelConfig.reasoningEffort },
+            ...(activeModelConfig?.reasoningEffort && {
+              openai: { reasoningEffort: activeModelConfig.reasoningEffort },
             }),
           },
           tools: {
@@ -250,23 +285,24 @@ export async function POST(request: Request) {
             createDocument: createDocument({
               session,
               dataStream,
-              modelId: chatModel,
+              modelId: activeModelId,
             }),
             editDocument: editDocument({ dataStream, session }),
             updateDocument: updateDocument({
               session,
               dataStream,
-              modelId: chatModel,
+              modelId: activeModelId,
             }),
             requestSuggestions: requestSuggestions({
               session,
               dataStream,
-              modelId: chatModel,
+              modelId: activeModelId,
             }),
             searchSpaghettiStories,
-            ...(process.env.SEARXNG_URL ? { webSearch } : {}),
+            webSearch,
+            browsePage,
             ...getAiGatewayTools(), // This adds webSearch from Gateway (uses $5 free credits)
-          },
+          } as any,
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",
@@ -274,7 +310,7 @@ export async function POST(request: Request) {
         });
 
         dataStream.merge(
-          result.toUIMessageStream({ sendReasoning: isReasoningModel })
+          result.toUIMessageStream({ sendReasoning: activeIsReasoningModel })
         );
 
         if (titlePromise) {
