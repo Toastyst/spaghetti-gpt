@@ -4,6 +4,12 @@
     let isOracleRouted = false;
 
     if (chatModel === "spaghetti-oracle") {
+      // Signal to frontend that Oracle is thinking
+      dataStream.write({
+        type: "data-oracle-thinking",
+        data: { status: "routing" },
+      });
+
       try {
         const routed = await resolveSpaghettiOracle(modelMessages);
         activeModelId = routed.id;
@@ -20,7 +26,7 @@
       modelDisplayName = modelInfo?.name || chatModel;
     }
 
-    // Send model info to frontend for bottom pill (works for Oracle + normal models)
+    // Send final model info for the bottom pill (Oracle + normal models)
     dataStream.write({
       type: "data-model-used",
       data: {
