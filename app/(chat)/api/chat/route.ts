@@ -1,10 +1,11 @@
+const stream = createUIMessageStream({
+  originalMessages: isToolApprovalFlow ? uiMessages : undefined,
   execute: async ({ writer: dataStream }) => {
     let activeModelId = chatModel;
     let modelDisplayName = "Unknown";
     let isOracleRouted = false;
 
     if (chatModel === "spaghetti-oracle") {
-      // Signal to frontend that Oracle is thinking
       dataStream.write({
         type: "data-oracle-thinking",
         data: { status: "routing" },
@@ -26,7 +27,6 @@
       modelDisplayName = modelInfo?.name || chatModel;
     }
 
-    // Send final model info for the bottom pill (Oracle + normal models)
     dataStream.write({
       type: "data-model-used",
       data: {
@@ -94,3 +94,48 @@
       }
     }
   },
+  generateId: generateUUID,
+  onFinish: async ({ messages: finishedMessages }) => {
+    if (isToolApprovalFlow) {
+      for (const finishedMsg of finishedMessages) {
+        const existingMsg = uiMessages.find((m) => m.id === finishedMsg.id);
+        if (existingMsg) {
+          await updateMessage({
+            id: finishedMsg.id,
+            parts: finishedMsg.parts,
+          });
+        } else {
+          await saveMessages({
+            messages: [
+              {
+                id: finishedMsg.id,
+                role: finishedMsg.role,
+                parts: finishedMsg.parts,
+                createdAt: new Date(),
+                attachments: [],
+                chatId: id,
+              },
+            ],
+          });
+        }
+      }
+    } else if (finishedMessages.length > 0) {
+      await saveMessages({
+        messages: finishedMessages.map((currentMessage) => ({
+          id: currentMessage.id,
+          role: currentMessage.role,
+          parts: currentMessage.parts,
+          createdAt: new Date(),
+          attachments: [],
+          chatId: id,
+        })),
+      });
+    }
+  },
+  onError: (error) => {
+    if (error instanceof ChatbotError) {
+      return error.message;
+    }
+    return "AI provider unavailable. Please configure an alternative provider (for example, set OPENROUTER_API_KEY) or enable Vercel AI Gateway in your deployment settings.";
+  },
+});
