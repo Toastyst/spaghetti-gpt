@@ -58,7 +58,7 @@ function extractChatId(pathname: string): string | null {
 
 export function ActiveChatProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { setDataStream } = useDataStream();
+  const { dataStream: currentDataStream, setDataStream } = useDataStream();
   const { mutate } = useSWRConfig();
 
   const chatIdFromUrl = extractChatId(pathname);
@@ -78,9 +78,6 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
   }, [currentModelId]);
-
-  // pending modelInfo if the data event arrives before the assistant message appears in the list
-  const pendingModelInfoRef = useRef<{ model: string; isOracle: boolean; reason?: string } | null>(null);
 
   const [input, setInput] = useState("");
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
@@ -161,15 +158,20 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       } else {
         setDataStream((ds) => (ds ? [...ds, dataPart] : [dataPart]));
       }
+    },
+    onFinish: () => {
+      mutate(unstable_serialize(getChatHistoryPaginationKey));
 
-      if (dataPart.type === "data-model-used") {
-        const incoming = dataPart.data as { model?: string; isOracle?: boolean; reason?: string } | undefined;
-        if (!incoming || typeof incoming !== "object" || !incoming.model) {
-          return;
-        }
-        const modelInfo = incoming as { model: string; isOracle: boolean; reason?: string };
-        pendingModelInfoRef.current = modelInfo;
-        // Attach to the most recent assistant message so the pill can render for historical + current
+      // After streaming completes, snapshot the model info from the (preserved) data events
+      // and attach it to the just-finished assistant message. This keeps the pill visible
+      // without mutating state *during* streaming (which was causing duplicate/empty messages).
+      const lastModelUsed = Array.isArray(currentDataStream)
+        ? [...currentDataStream]
+            .reverse()
+            .find((d: any) => d.type === "data-model-used")?.data
+        : undefined;
+
+      if (lastModelUsed && typeof lastModelUsed === "object" && lastModelUsed.model) {
         setMessages((current) => {
           const lastAssistantIndex = [...current]
             .map((m, i) => ({ m, i }))
@@ -179,16 +181,14 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
           if (lastAssistantIndex != null) {
             const targetId = current[lastAssistantIndex].id;
             const existing = (current[lastAssistantIndex] as any).modelInfo;
-            if (existing) {
-              pendingModelInfoRef.current = null;
-              return current;
-            }
+            if (existing) return current;
+
             return current.map((msg) =>
               msg.id === targetId
                 ? {
                     ...msg,
-                    // Attach model info for rendering the pill (UI-only augmentation)
-                    modelInfo,
+                    // UI-only augmentation for the model pill
+                    modelInfo: lastModelUsed,
                   }
                 : msg
             );
@@ -196,9 +196,6 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
           return current;
         });
       }
-    },
-    onFinish: () => {
-      mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     onError: (error) => {
       if (error instanceof ChatbotError) {
@@ -215,26 +212,6 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       }
     },
   });
-
-  // Attach pending modelInfo to the newly added assistant message (handles race where data event arrives before the assistant message is in the list)
-  useEffect(() => {
-    if (!pendingModelInfoRef.current) return;
-    setMessages((current) => {
-      if (current.length === 0) return current;
-      const lastIndex = current.length - 1;
-      const lastMsg = current[lastIndex] as any;
-      if (lastMsg.role === "assistant" && !lastMsg.modelInfo) {
-        const newMessages = [...current];
-        newMessages[lastIndex] = {
-          ...lastMsg,
-          modelInfo: pendingModelInfoRef.current,
-        };
-        pendingModelInfoRef.current = null;
-        return newMessages;
-      }
-      return current;
-    });
-  }, [messages.length]);
 
   const loadedChatIds = useRef(new Set<string>());
 
