@@ -136,7 +136,8 @@ const PurePreviewMessage = ({
       return null;
     }
 
-    if (type === "text") {
+    if (type === "text" || type === "text-delta") {
+      const textContent = (part as any).text || (part as any).delta || "";
       return (
         <MessageContent
           className={cn("text-[13px] leading-[1.65]", {
@@ -146,7 +147,7 @@ const PurePreviewMessage = ({
           data-testid="message-content"
           key={key}
         >
-          <MessageResponse>{sanitizeText(part.text)}</MessageResponse>
+          <MessageResponse>{sanitizeText(textContent)}</MessageResponse>
         </MessageContent>
       );
     }
