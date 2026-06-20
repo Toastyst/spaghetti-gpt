@@ -16,14 +16,14 @@ const MODEL_ID_MAP: Record<string, string> = {
   "Laguna M.1": "poolside/laguna-xs.2:free",
   "Owl Alpha": "openai/gpt-oss-120b:free",
   "Owl": "openai/gpt-oss-120b:free",
-  "Nemotron 3 Ultra": "openai/gpt-oss-120b:free", // fallback to strong one
+  "Nemotron 3 Ultra": "openai/gpt-oss-120b:free",
   "Nemotron 3 Super": "openai/gpt-oss-120b:free",
   "Nemotron Ultra": "openai/gpt-oss-120b:free",
   "Nemotron Nano": "nvidia/nemotron-3-nano-30b-a3b:free",
   "Nano": "nvidia/nemotron-3-nano-30b-a3b:free",
   "Gemma 4 31B": "google/gemma-4-31b-it:free",
   "Gemma": "google/gemma-4-31b-it:free",
-  // Direct full IDs (in case LLM outputs them correctly)
+  // Direct full IDs
   "nex-agi/nex-n2-pro:free": "nex-agi/nex-n2-pro:free",
   "poolside/laguna-xs.2:free": "poolside/laguna-xs.2:free",
   "openai/gpt-oss-120b:free": "openai/gpt-oss-120b:free",
@@ -32,7 +32,6 @@ const MODEL_ID_MAP: Record<string, string> = {
   "nvidia/nemotron-3-nano-30b-a3b:free": "nvidia/nemotron-3-nano-30b-a3b:free",
 };
 
-// Safe default that almost always has endpoints
 const SAFE_DEFAULT = "openai/gpt-oss-120b:free";
 
 const ROUTER_SYSTEM_PROMPT = `You are an expert model router for a free AI chat system called Spaghetti-gpt.
@@ -62,14 +61,17 @@ Model: <one of the exact model IDs listed above>
 
 export async function resolveSpaghettiOracle(messages: any[]): Promise<string> {
   try {
-    // Extract last user message
     const lastUser = [...messages].reverse().find(m => m.role === 'user');
     let userPrompt = 'General request';
+
     if (lastUser) {
       if (typeof lastUser.content === 'string') {
         userPrompt = lastUser.content.slice(0, 800);
       } else if (Array.isArray(lastUser.content)) {
-        userPrompt = lastUser.content.map(p => p.text || '').join(' ').slice(0, 800);
+        userPrompt = lastUser.content
+          .map((p: any) => p.text || '')
+          .join(' ')
+          .slice(0, 800);
       }
     }
 
@@ -83,14 +85,11 @@ export async function resolveSpaghettiOracle(messages: any[]): Promise<string> {
       temperature: 0.1,
     });
 
-    // Parse the Model: line
     const match = text.match(/Model:\s*([\w\/\-:.@]+)/i);
     let raw = match ? match[1].trim() : '';
 
-    // Map to full ID if it's a friendly/short name
     let chosen = MODEL_ID_MAP[raw] || raw;
 
-    // Final validation: must be one of the real IDs in chatModels
     const isValid = chatModels.some(m => m.id === chosen);
 
     if (!isValid) {
