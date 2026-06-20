@@ -28,6 +28,7 @@ import { updateDocument } from "@/lib/ai/tools/update-document";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { searchSpaghettiStories } from "@/lib/ai/tools/search-stories";
 import { browsePage } from "@/lib/ai/tools/browse-page";
+import { resolveSpaghettiOracle } from "@/lib/ai/oracle";
 
 import { isProductionEnvironment } from "@/lib/constants";
 import {
@@ -225,11 +226,27 @@ export async function POST(request: Request) {
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
-        // Emit the model used for the UI pill (no oracle routing for normal selected models)
-        const activeModelId = chatModel;
-        const modelDisplayName =
+        let activeModelId = chatModel;
+        let modelDisplayName =
           chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
-        const isOracleRouted = false;
+        let isOracleRouted = false;
+
+        if (chatModel === "spaghetti-oracle") {
+          // Only do actual routing + indicator when user explicitly selects Spaghetti Oracle
+          dataStream.write({ type: "data-oracle-thinking", data: null } as any);
+
+          try {
+            const routed = await resolveSpaghettiOracle(modelMessages as ModelMessage[]);
+            activeModelId = routed.id;
+            modelDisplayName = routed.friendlyName;
+            isOracleRouted = true;
+          } catch {
+            activeModelId = DEFAULT_CHAT_MODEL;
+            modelDisplayName =
+              chatModels.find((m) => m.id === DEFAULT_CHAT_MODEL)?.name ?? DEFAULT_CHAT_MODEL;
+            isOracleRouted = false;
+          }
+        }
 
         dataStream.write({
           type: "data-model-used",
