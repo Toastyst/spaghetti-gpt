@@ -79,6 +79,9 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
     currentModelIdRef.current = currentModelId;
   }, [currentModelId]);
 
+  // pending modelInfo if the data event arrives before the assistant message appears in the list
+  const pendingModelInfoRef = useRef<{ model: string; isOracle: boolean; reason?: string } | null>(null);
+
   const [input, setInput] = useState("");
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
 
@@ -165,6 +168,7 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
           return;
         }
         const modelInfo = incoming as { model: string; isOracle: boolean; reason?: string };
+        pendingModelInfoRef.current = modelInfo;
         // Attach to the most recent assistant message so the pill can render for historical + current
         setMessages((current) => {
           const lastAssistantIndex = [...current]
@@ -174,6 +178,11 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
 
           if (lastAssistantIndex != null) {
             const targetId = current[lastAssistantIndex].id;
+            const existing = (current[lastAssistantIndex] as any).modelInfo;
+            if (existing) {
+              pendingModelInfoRef.current = null;
+              return current;
+            }
             return current.map((msg) =>
               msg.id === targetId
                 ? {
@@ -206,6 +215,26 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       }
     },
   });
+
+  // Attach pending modelInfo to the newly added assistant message (handles race where data event arrives before the assistant message is in the list)
+  useEffect(() => {
+    if (!pendingModelInfoRef.current) return;
+    setMessages((current) => {
+      if (current.length === 0) return current;
+      const lastIndex = current.length - 1;
+      const lastMsg = current[lastIndex] as any;
+      if (lastMsg.role === "assistant" && !lastMsg.modelInfo) {
+        const newMessages = [...current];
+        newMessages[lastIndex] = {
+          ...lastMsg,
+          modelInfo: pendingModelInfoRef.current,
+        };
+        pendingModelInfoRef.current = null;
+        return newMessages;
+      }
+      return current;
+    });
+  }, [messages.length]);
 
   const loadedChatIds = useRef(new Set<string>());
 
