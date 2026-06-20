@@ -20,7 +20,12 @@ export function DataStreamHandler() {
     }
 
     const newDeltas = dataStream.slice();
-    setDataStream([]);
+
+    // Preserve oracle routing data parts so message UI can see "Routing..." and model pill
+    const routingTypes = new Set(['data-oracle-thinking', 'data-model-used']);
+    setDataStream((prev) =>
+      prev.filter((d) => !routingTypes.has(d.type as string))
+    );
 
     for (const delta of newDeltas) {
       if (delta.type === "data-chat-title") {
