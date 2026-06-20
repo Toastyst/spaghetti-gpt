@@ -223,7 +223,12 @@ export async function POST(request: Request) {
 
     const modelMessages = await convertToModelMessages(uiMessages);
 
-    let persistedModelInfo: { model: string; isOracle: boolean } | null = null;
+    let persistedModelInfo: {
+      model: string;
+      isOracle: boolean;
+      reason?: string;
+      method?: "llm" | "vision" | "heuristic" | "fallback";
+    } | null = null;
 
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
@@ -246,16 +251,31 @@ export async function POST(request: Request) {
             activeModelId = routed.id;
             modelDisplayName = routed.friendlyName;
             isOracleRouted = true;
-          } catch {
+            persistedModelInfo = {
+              model: modelDisplayName,
+              isOracle: true,
+              reason: routed.reason,
+              method: routed.method,
+            };
+          } catch (error) {
             activeModelId = "openai/gpt-oss-20b:free";
             modelDisplayName =
               chatModels.find((m) => m.id === activeModelId)?.name ??
               activeModelId;
             isOracleRouted = false;
+            persistedModelInfo = {
+              model: modelDisplayName,
+              isOracle: false,
+              reason:
+                error instanceof Error
+                  ? `Oracle failed: ${error.message}`
+                  : "Oracle routing failed",
+              method: "fallback",
+            };
           }
+        } else {
+          persistedModelInfo = { model: modelDisplayName, isOracle: false };
         }
-
-        persistedModelInfo = { model: modelDisplayName, isOracle: isOracleRouted };
 
         dataStream.write({
           type: "data-model-used",

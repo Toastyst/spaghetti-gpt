@@ -33,6 +33,7 @@ export type ModelRoutingInfo = {
   model: string;
   isOracle: boolean;
   reason?: string;
+  method?: "llm" | "vision" | "heuristic" | "fallback";
 };
 
 export type OracleRoutingState = {

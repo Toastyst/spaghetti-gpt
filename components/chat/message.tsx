@@ -24,6 +24,21 @@ import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 import { Weather } from "./weather";
 
+function formatModelPillTitle(modelInfo: ModelRoutingInfo): string {
+  if (!modelInfo.isOracle) {
+    return `Model: ${modelInfo.model}`;
+  }
+
+  const lines = ["Routed by Spaghetti Oracle", `Model: ${modelInfo.model}`];
+  if (modelInfo.method) {
+    lines.push(`Method: ${modelInfo.method}`);
+  }
+  if (modelInfo.reason) {
+    lines.push(`Reason: ${modelInfo.reason}`);
+  }
+  return lines.join("\n");
+}
+
 function extractModelInfoFromParts(
   parts: ChatMessage["parts"] | undefined
 ): ModelRoutingInfo | undefined {
@@ -359,7 +374,7 @@ const PurePreviewMessage = ({
         <div className="mt-1.5 flex items-center">
           <span
             className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-foreground/80"
-            title={modelInfo.isOracle ? "Routed by Spaghetti Oracle" : `Model: ${modelInfo.model || ''}`}
+            title={formatModelPillTitle(modelInfo)}
           >
             {modelInfo.isOracle ? "🔮 " : "🤖 "}
             <span className="font-mono tracking-tight">{modelInfo.model || ''}</span>
