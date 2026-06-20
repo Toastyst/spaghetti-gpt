@@ -48,7 +48,7 @@ const PurePreviewMessage = ({
     (part) => part.type === "file"
   );
 
-  useDataStream();
+  const { dataStream } = useDataStream();
 
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
@@ -61,7 +61,30 @@ const PurePreviewMessage = ({
         part.text?.trim().length > 0) ||
       part.type.startsWith("tool-")
   );
-  const isThinking = isAssistant && isLoading && !hasAnyContent;
+
+  // Detect oracle thinking from transient data stream (for current response)
+  const hasOracleThinking = dataStream.some(
+    (d: any) => d.type === "data-oracle-thinking"
+  );
+
+  const isThinking =
+    isAssistant &&
+    isLoading &&
+    (!hasAnyContent || hasOracleThinking);
+
+  // Attached by use-active-chat on data-model-used
+  const attachedModelInfo = (message as any).modelInfo as
+    | { model: string; isOracle: boolean; reason?: string }
+    | undefined;
+
+  // Also check most recent data-model-used in the (briefly available) stream as fallback
+  const latestModelUsed = [...dataStream]
+    .reverse()
+    .find((d: any) => d.type === "data-model-used")?.data as
+    | { model: string; isOracle: boolean; reason?: string }
+    | undefined;
+
+  const modelInfo = attachedModelInfo ?? latestModelUsed;
 
   const attachments = attachmentsFromMessage.length > 0 && (
     <div
@@ -319,13 +342,24 @@ const PurePreviewMessage = ({
   const content = isThinking ? (
     <div className="flex h-[calc(13px*1.65)] items-center text-[13px] leading-[1.65]">
       <Shimmer className="font-medium" duration={1}>
-        Thinking...
+        {hasOracleThinking ? "Routing..." : "Thinking..."}
       </Shimmer>
     </div>
   ) : (
     <>
       {attachments}
       {parts}
+      {modelInfo && isAssistant && (
+        <div className="mt-1 flex items-center">
+          <span
+            className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-muted/40 px-2 py-0.5 text-[10px] leading-none text-muted-foreground"
+            title={modelInfo.isOracle ? "Routed by Spaghetti Oracle" : undefined}
+          >
+            {modelInfo.isOracle ? "🔮 " : ""}
+            {modelInfo.model}
+          </span>
+        </div>
+      )}
       {actions}
     </>
   );
