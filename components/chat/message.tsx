@@ -348,13 +348,13 @@ const PurePreviewMessage = ({
       {attachments}
       {parts}
       {modelInfo && isAssistant && (
-        <div className="mt-1 flex items-center">
+        <div className="mt-1.5 flex items-center">
           <span
-            className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-muted/40 px-2 py-0.5 text-[10px] leading-none text-muted-foreground"
-            title={modelInfo.isOracle ? "Routed by Spaghetti Oracle" : undefined}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-foreground/80"
+            title={modelInfo.isOracle ? "Routed by Spaghetti Oracle" : `Model: ${modelInfo.model}`}
           >
-            {modelInfo.isOracle ? "🔮 " : ""}
-            {modelInfo.model}
+            {modelInfo.isOracle ? "🔮 " : "🤖 "}
+            <span className="font-mono tracking-tight">{modelInfo.model}</span>
           </span>
         </div>
       )}
