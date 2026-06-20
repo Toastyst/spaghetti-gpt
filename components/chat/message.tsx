@@ -70,7 +70,7 @@ const PurePreviewMessage = ({
   const isThinking =
     isAssistant &&
     isLoading &&
-    (!hasAnyContent || hasOracleThinking);
+    !hasAnyContent;
 
   // Attached by use-active-chat on data-model-used
   const attachedModelInfo = message.modelInfo;
