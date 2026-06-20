@@ -81,7 +81,7 @@ export async function resolveSpaghettiOracle(messages: any[]): Promise<string> {
       model: decider,
       system: ROUTER_SYSTEM_PROMPT,
       prompt: `Current user request:\n${userPrompt}\n\nChoose the best model and output exactly in the required format.`,
-      maxTokens: 50,
+      maxOutputTokens: 50,
       temperature: 0.1,
     });
 
