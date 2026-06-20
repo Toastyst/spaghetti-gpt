@@ -28,7 +28,7 @@ import { updateDocument } from "@/lib/ai/tools/update-document";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { searchSpaghettiStories } from "@/lib/ai/tools/search-stories";
 import { browsePage } from "@/lib/ai/tools/browse-page";
-import { resolveSpaghettiOracle } from "@/lib/ai/oracle";
+
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -225,26 +225,14 @@ export async function POST(request: Request) {
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
-        // Spaghetti Oracle routing
+        // Oracle routing indicator (for "Routing..." shimmer and model pill UI)
+        // The actual model used respects the user's selectedChatModel from the selector.
         dataStream.write({ type: "data-oracle-thinking", data: null } as any);
 
-        let activeModelId = chatModel;
-        let modelDisplayName =
+        const activeModelId = chatModel;
+        const modelDisplayName =
           chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
-        let isOracleRouted = false;
-
-        try {
-          const routed = await resolveSpaghettiOracle(modelMessages as ModelMessage[]);
-          activeModelId = routed.id;
-          modelDisplayName = routed.friendlyName;
-          isOracleRouted = true;
-        } catch {
-          // keep selected as fallback
-          activeModelId = chatModel;
-          modelDisplayName =
-            chatModels.find((m) => m.id === chatModel)?.name ?? chatModel;
-          isOracleRouted = false;
-        }
+        const isOracleRouted = false;
 
         dataStream.write({
           type: "data-model-used",
