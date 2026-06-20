@@ -1,5 +1,6 @@
-import { generateText, type ModelMessage } from "ai";
-import { DEFAULT_CHAT_MODEL, chatModels } from "./models";
+import { generateObject, type ModelMessage } from "ai";
+import { z } from "zod";
+import { chatModels } from "./models";
 import { getLanguageModel } from "./providers";
 
 export type OracleResult = {
@@ -7,137 +8,133 @@ export type OracleResult = {
   friendlyName: string;
 };
 
-// Friendly aliases -> canonical
-const MODEL_ID_MAP: Record<string, { id: string; friendlyName: string }> = {
-  // Exact ids
-  "openai/gpt-oss-120b:free": { id: "openai/gpt-oss-120b:free", friendlyName: "gpt-oss-120b" },
-  "poolside/laguna-xs.2:free": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
-  "nex-agi/nex-n2-pro:free": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
-  "openai/gpt-oss-20b:free": { id: "openai/gpt-oss-20b:free", friendlyName: "gpt-oss-20b" },
-  "google/gemma-4-31b-it:free": { id: "google/gemma-4-31b-it:free", friendlyName: "Gemma 4 31B" },
-  "nvidia/nemotron-3-nano-30b-a3b:free": { id: "nvidia/nemotron-3-nano-30b-a3b:free", friendlyName: "Nemotron 3 Nano 30B A3B" },
+const ORACLE_FALLBACK_MODEL = "openai/gpt-oss-20b:free";
 
-  // Common friendly names / aliases (case-insensitive keys stored lower)
-  "laguna": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
-  "laguna xs.2": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
-  "laguna-xs.2": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
-  "nex-n2-pro": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
-  "nex n2 pro": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
-  "nexn2pro": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
-  "gpt-oss-120b": { id: "openai/gpt-oss-120b:free", friendlyName: "gpt-oss-120b" },
-  "gpt oss 120b": { id: "openai/gpt-oss-120b:free", friendlyName: "gpt-oss-120b" },
-  "gpt-oss-20b": { id: "openai/gpt-oss-20b:free", friendlyName: "gpt-oss-20b" },
-  "gemma": { id: "google/gemma-4-31b-it:free", friendlyName: "Gemma 4 31B" },
-  "gemma 4": { id: "google/gemma-4-31b-it:free", friendlyName: "Gemma 4 31B" },
-  "nemotron": { id: "nvidia/nemotron-3-nano-30b-a3b:free", friendlyName: "Nemotron 3 Nano 30B A3B" },
+const ORACLE_MODEL_IDS = [
+  "poolside/laguna-xs.2:free",
+  "openai/gpt-oss-20b:free",
+  "nex-agi/nex-n2-pro:free",
+  "google/gemma-4-31b-it:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "openai/gpt-oss-120b:free",
+] as const;
 
-  // Placeholder aliases mentioned in planning (map to closest available)
-  "owl": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
-  "owl alpha": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
-};
-
-function normalizeKey(raw: string): string {
-  return raw.trim().toLowerCase().replace(/^["'`]+|["'`]+$/g, "");
-}
-
-function resolveFromMap(raw: string): OracleResult | null {
-  const key = normalizeKey(raw);
-  if (MODEL_ID_MAP[key]) {
-    return MODEL_ID_MAP[key];
-  }
-  // Try direct id match (case sensitive original list)
-  const direct = MODEL_ID_MAP[raw];
-  if (direct) return direct;
-  // Try matching any id that includes the key
-  for (const m of chatModels) {
-    if (m.id.toLowerCase() === key || m.name.toLowerCase() === key) {
-      return { id: m.id, friendlyName: m.name };
-    }
-  }
-  return null;
-}
+const oracleDecisionSchema = z.object({
+  modelId: z.enum(ORACLE_MODEL_IDS),
+  reason: z.string().max(120),
+});
 
 const ORACLE_SYSTEM_PROMPT = `You are SpaghettiOracle, an expert model router for a chat application.
 
-Your ONLY job is to pick the single best model for the user's latest request.
+Your job: pick the single best model for the user's LATEST message. Use prior messages only for context.
 
-Available models (use the EXACT full slug on the left):
+Available models (return the exact modelId):
 
-- openai/gpt-oss-120b:free
-- poolside/laguna-xs.2:free
-- nex-agi/nex-n2-pro:free
-- openai/gpt-oss-20b:free
-- google/gemma-4-31b-it:free
-- nvidia/nemotron-3-nano-30b-a3b:free
+1. poolside/laguna-xs.2:free
+   Best for: writing code, debugging, refactors, APIs, scripts, configs, devops, technical implementation, agentic/tool-heavy tasks.
 
-Rules:
-- Output ONLY the exact full slug of the chosen model.
-- No explanations, no quotes, no markdown, no extra words.
-- If the query is about coding, implementation, debugging, agentic tasks, or tools → prefer poolside/laguna-xs.2:free
-- If the query is simple, casual, quick, creative writing, or speed is important → prefer openai/gpt-oss-20b:free or nex-agi/nex-n2-pro:free
-- If the user asks for image understanding / vision → prefer google/gemma-4-31b-it:free
-- For general questions, explanations, news, or most other cases → prefer openai/gpt-oss-20b:free for balance (use 120b only for very complex reasoning or very long context)
-- Always return one of the exact slugs listed above.`;
+2. openai/gpt-oss-20b:free  ← DEFAULT when unsure
+   Best for: everyday Q&A, explanations, summaries, how-tos, casual chat, quick factual answers, general knowledge.
+
+3. nex-agi/nex-n2-pro:free
+   Best for: creative writing, brainstorming, storytelling, friendly conversational tone, light banter.
+
+4. google/gemma-4-31b-it:free
+   Best for: image understanding and vision tasks ONLY (user attached images or asks about visual content).
+
+5. nvidia/nemotron-3-nano-30b-a3b:free
+   Best for: logic puzzles, math, step-by-step reasoning, structured analysis, comparing options.
+
+6. openai/gpt-oss-120b:free  ← use sparingly
+   Best for: exceptionally complex multi-step reasoning, deep research synthesis, or very long detailed analysis.
+   Do NOT pick for: simple questions, casual chat, coding (use Laguna), or anything a smaller model can handle.
+
+Routing rules:
+- Default to openai/gpt-oss-20b:free unless there is a clear specialty match.
+- Coding or implementation → poolside/laguna-xs.2:free (never 120b).
+- Images/vision in the request → google/gemma-4-31b-it:free.
+- Creative writing → nex-agi/nex-n2-pro:free.
+- Logic/math/puzzles → nvidia/nemotron-3-nano-30b-a3b:free.
+- Reserve openai/gpt-oss-120b:free for genuinely hard problems only.
+- Vary your choices across a conversation; do not route every message to the same model.`;
+
+function getFriendlyName(modelId: string): string {
+  return chatModels.find((m) => m.id === modelId)?.name ?? modelId;
+}
+
+function getFallback(): OracleResult {
+  return {
+    id: ORACLE_FALLBACK_MODEL,
+    friendlyName: getFriendlyName(ORACLE_FALLBACK_MODEL),
+  };
+}
+
+function messageHasImages(messages: ModelMessage[]): boolean {
+  for (const message of messages) {
+    if (!Array.isArray(message.content)) {
+      continue;
+    }
+    for (const part of message.content) {
+      if (
+        typeof part === "object" &&
+        part !== null &&
+        "type" in part &&
+        (part.type === "image" ||
+          (part.type === "file" &&
+            "mediaType" in part &&
+            typeof part.mediaType === "string" &&
+            part.mediaType.startsWith("image/")))
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 export async function resolveSpaghettiOracle(
   messages: ModelMessage[]
 ): Promise<OracleResult> {
-  // Fallback in case something goes wrong
-  const fallback: OracleResult = {
-    id: DEFAULT_CHAT_MODEL,
-    friendlyName:
-      chatModels.find((m) => m.id === DEFAULT_CHAT_MODEL)?.name ??
-      "gpt-oss-120b",
-  };
+  const fallback = getFallback();
 
   if (!messages || messages.length === 0) {
     return fallback;
   }
 
-  try {
-    // Use a fast, cheap model for routing decisions
-    const oracleModel = getLanguageModel("openai/gpt-oss-20b:free");
+  if (messageHasImages(messages)) {
+    const visionModel = "google/gemma-4-31b-it:free";
+    console.log("[SpaghettiOracle] vision content detected →", visionModel);
+    return { id: visionModel, friendlyName: getFriendlyName(visionModel) };
+  }
 
-    // Take a bounded window of recent messages for context
+  try {
+    const oracleModel = getLanguageModel("openai/gpt-oss-20b:free");
     const recent = messages.slice(-8);
 
-    const { text } = await generateText({
+    const { object } = await generateObject({
       model: oracleModel,
+      schema: oracleDecisionSchema,
       system: ORACLE_SYSTEM_PROMPT,
       messages: recent,
-      maxOutputTokens: 16,
-      temperature: 0.1,
+      maxOutputTokens: 128,
+      temperature: 0.4,
     });
 
-    const raw = (text || "").trim();
-    console.log("[SpaghettiOracle] raw decision:", JSON.stringify(raw));
+    const modelId = object.modelId;
+    console.log(
+      "[SpaghettiOracle] routed to",
+      modelId,
+      `(${getFriendlyName(modelId)})`,
+      "—",
+      object.reason
+    );
 
-    // Try exact map resolution first
-    const mapped = resolveFromMap(raw);
-    if (mapped) {
-      console.log("[SpaghettiOracle] routed to", mapped.id, `(${mapped.friendlyName})`);
-      return mapped;
-    }
-
-    // Try to find an id that appears in the raw output
-    for (const m of chatModels) {
-      if (raw.toLowerCase().includes(m.id.toLowerCase())) {
-        console.log("[SpaghettiOracle] routed (substring) to", m.id);
-        return { id: m.id, friendlyName: m.name };
-      }
-    }
-
-    // Last attempt: see if any friendly name is contained
-    for (const m of chatModels) {
-      if (raw.toLowerCase().includes(m.name.toLowerCase())) {
-        return { id: m.id, friendlyName: m.name };
-      }
-    }
-
-    console.warn("[SpaghettiOracle] could not parse, falling back");
-    return fallback;
+    return { id: modelId, friendlyName: getFriendlyName(modelId) };
   } catch (err) {
-    console.error("[SpaghettiOracle] error during routing, using fallback:", err);
+    console.error(
+      "[SpaghettiOracle] error during routing, using fallback:",
+      err
+    );
     return fallback;
   }
 }
