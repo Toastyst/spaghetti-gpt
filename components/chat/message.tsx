@@ -63,7 +63,7 @@ const PurePreviewMessage = ({
   );
 
   // Detect oracle thinking from transient data stream (for current response)
-  const hasOracleThinking = dataStream.some(
+  const hasOracleThinking = Array.isArray(dataStream) && dataStream.some(
     (d: any) => d.type === "data-oracle-thinking"
   );
 
@@ -76,13 +76,15 @@ const PurePreviewMessage = ({
   const attachedModelInfo = message.modelInfo;
 
   // Also check most recent data-model-used in the (briefly available) stream as fallback
-  const latestModelUsed = [...dataStream]
-    .reverse()
-    .find((d: any) => d.type === "data-model-used")?.data as
-    | { model: string; isOracle: boolean; reason?: string }
-    | undefined;
+  const latestModelUsed = Array.isArray(dataStream)
+    ? [...dataStream]
+        .reverse()
+        .find((d: any) => d.type === "data-model-used")?.data as
+        | { model: string; isOracle: boolean; reason?: string }
+        | undefined
+    : undefined;
 
-  const modelInfo = attachedModelInfo ?? latestModelUsed;
+  const modelInfo = attachedModelInfo ?? (isLoading ? latestModelUsed : undefined);
 
   const attachments = attachmentsFromMessage.length > 0 && (
     <div
@@ -351,10 +353,10 @@ const PurePreviewMessage = ({
         <div className="mt-1.5 flex items-center">
           <span
             className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-foreground/80"
-            title={modelInfo.isOracle ? "Routed by Spaghetti Oracle" : `Model: ${modelInfo.model}`}
+            title={modelInfo.isOracle ? "Routed by Spaghetti Oracle" : `Model: ${modelInfo.model || ''}`}
           >
             {modelInfo.isOracle ? "🔮 " : "🤖 "}
-            <span className="font-mono tracking-tight">{modelInfo.model}</span>
+            <span className="font-mono tracking-tight">{modelInfo.model || ''}</span>
           </span>
         </div>
       )}

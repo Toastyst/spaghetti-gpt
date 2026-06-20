@@ -21,10 +21,11 @@ export function DataStreamHandler() {
 
     const newDeltas = dataStream.slice();
 
-    // Preserve oracle routing data parts so message UI can see "Routing..." and model pill
+    // Preserve oracle routing data parts (data-oracle-thinking, data-model-used) so the message UI
+    // can reliably detect "Routing..." and show the model pill. Other deltas are consumed here.
     const routingTypes = new Set(['data-oracle-thinking', 'data-model-used']);
     setDataStream((prev) =>
-      prev.filter((d) => !routingTypes.has(d.type as string))
+      prev.filter((d) => routingTypes.has(d.type as string))
     );
 
     for (const delta of newDeltas) {
