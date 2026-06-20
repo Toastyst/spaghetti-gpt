@@ -168,10 +168,12 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       const lastModelUsed = Array.isArray(currentDataStream)
         ? [...currentDataStream]
             .reverse()
-            .find((d: any) => d.type === "data-model-used")?.data
+            .find((d: any) => d.type === "data-model-used")?.data as
+            | { model: string; isOracle: boolean; reason?: string }
+            | undefined
         : undefined;
 
-      if (lastModelUsed && typeof lastModelUsed === "object" && lastModelUsed.model) {
+      if (lastModelUsed && lastModelUsed.model) {
         setMessages((current) => {
           const lastAssistantIndex = [...current]
             .map((m, i) => ({ m, i }))
