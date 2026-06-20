@@ -12,6 +12,7 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
       model: getLanguageModel(modelId),
       system: `${sheetPrompt}\n\nOutput ONLY the raw CSV data. No explanations, no markdown fences.`,
       prompt: title,
+      maxOutputTokens: 8192,
     });
 
     for await (const delta of fullStream) {
@@ -34,6 +35,7 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
       model: getLanguageModel(modelId),
       system: `${updateDocumentPrompt(document.content, "sheet")}\n\nOutput ONLY the raw CSV data. No explanations, no markdown fences.`,
       prompt: description,
+      maxOutputTokens: 8192,
     });
 
     for await (const delta of fullStream) {

@@ -19,6 +19,7 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
       model: getLanguageModel(modelId),
       system: `${codePrompt}\n\nOutput ONLY the code. No explanations, no markdown fences, no wrapping.`,
       prompt: title,
+      maxOutputTokens: 8192,
     });
 
     for await (const delta of fullStream) {
@@ -41,6 +42,7 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
       model: getLanguageModel(modelId),
       system: `${updateDocumentPrompt(document.content, "code")}\n\nOutput ONLY the complete updated code. No explanations, no markdown fences, no wrapping.`,
       prompt: description,
+      maxOutputTokens: 8192,
     });
 
     for await (const delta of fullStream) {

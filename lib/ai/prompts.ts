@@ -79,9 +79,9 @@ CRITICAL RULES:
 - Prefer sharing the exact 'url' fields from the tool results (as markdown links).
 `;
 
-export const regularPrompt = `You are a helpful assistant. Keep responses concise and direct.
+export const regularPrompt = `You are a helpful assistant.
 
-When asked to write, create, or build something, do it immediately. Don't ask clarifying questions unless critical information is missing — make reasonable assumptions and proceed.`;
+When asked to write, create, or build something, do it immediately. Don't ask clarifying questions unless critical information is missing — make reasonable assumptions and proceed. Provide complete and useful responses.`;
 
 export type RequestHints = {
   latitude: Geo["latitude"];
