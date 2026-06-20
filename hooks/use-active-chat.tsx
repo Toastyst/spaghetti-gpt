@@ -52,7 +52,7 @@ type ActiveChatContextValue = {
 const ActiveChatContext = createContext<ActiveChatContextValue | null>(null);
 
 function extractChatId(pathname: string): string | null {
-  const match = pathname.match(/\/chat\/([^/]+)/);
+  const match = pathname.match(/\/chat\/([^\/]+)/);
   return match ? match[1] : null;
 }
 

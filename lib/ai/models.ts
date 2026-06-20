@@ -1,5 +1,6 @@
 // Focused list of free / high-quality OpenRouter models for testing
 // Restricted to the 6 models requested to reduce bugs and only enable image support where supported
+
 export const DEFAULT_CHAT_MODEL = "openai/gpt-oss-120b:free";
 
 export const titleModel = {
@@ -79,6 +80,14 @@ export const chatModels: ChatModel[] = [
     name: "Nemotron 3 Nano 30B A3B",
     provider: "nvidia",
     description: "NVIDIA Nemotron (free)",
+    isFree: true,
+  },
+  // === Spaghetti Oracle - Smart Router ===
+  {
+    id: "spaghetti-oracle",
+    name: "Spaghetti Oracle",
+    provider: "spaghetti",
+    description: "Intelligent router that analyzes your prompt and automatically selects the best free model for the task (Owl Alpha for deep research, Laguna for coding/agentic, Nemotron for reasoning, fast models for quick answers). Uses Nemotron Nano as decider + optional ensemble voting for critical steps. Best for complex or long sessions.",
     isFree: true,
   },
 ];

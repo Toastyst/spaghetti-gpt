@@ -48,6 +48,27 @@ CRITICAL RULES:
 
 **Using \`requestSuggestions\`:**
 - ONLY when the user explicitly asks for suggestions on an existing document
+
+**Using \`webSearch\` (free, SearXNG-based):**
+- Use this when you need current information from the web (news, recent events, facts, research, prices, etc.).
+- Powered by SearXNG. If you set SEARXNG_URL it will use your instance (best for privacy/speed).
+- If SEARXNG_URL is not set it automatically falls back to public instances listed on https://searx.space.
+- Returns titles, urls, and snippets.
+- Pair it with \`browsePage\` to get the full content of promising results ("extract").
+- For higher-quality results without self-hosting, use \`webSearchGateway\` (Perplexity via AI Gateway) when available.
+- Always the first choice for broad discovery.
+
+**Using \`webSearchGateway\` (uses Vercel AI Gateway credits):**
+- Alternative web search powered by Perplexity through AI Gateway.
+- Only available if you have pulled VERCEL_OIDC_TOKEN or set AI Gateway keys and enabled the feature.
+- Consumes from the $5 monthly free credits on AI Gateway (or paid credits after that).
+- Use only if you explicitly want higher quality search and are okay with the credit usage.
+
+**Using \`browsePage\` (always available):**
+- Fetches the full main content from a specific URL (use the exact URLs returned by webSearch or webSearchGateway).
+- Strips scripts, styles, navigation, etc. and returns the page title + clean readable text.
+- Essential for "extract" / deep reading: after a search, call this on the most promising 1-3 links to get full articles, data, or details before answering or citing.
+- Always provide the original URL back to the user when you use information from it.
 `;
 
 **Using \`webSearch\` (free, SearXNG-based):**
