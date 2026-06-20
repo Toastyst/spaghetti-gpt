@@ -169,8 +169,7 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
               msg.id === targetId
                 ? {
                     ...msg,
-                    // Attach model info for rendering the pill
-                    // @ts-expect-error - augmenting message for UI only
+                    // Attach model info for rendering the pill (UI-only augmentation)
                     modelInfo,
                   }
                 : msg

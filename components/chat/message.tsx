@@ -73,9 +73,7 @@ const PurePreviewMessage = ({
     (!hasAnyContent || hasOracleThinking);
 
   // Attached by use-active-chat on data-model-used
-  const attachedModelInfo = (message as any).modelInfo as
-    | { model: string; isOracle: boolean; reason?: string }
-    | undefined;
+  const attachedModelInfo = message.modelInfo;
 
   // Also check most recent data-model-used in the (briefly available) stream as fallback
   const latestModelUsed = [...dataStream]

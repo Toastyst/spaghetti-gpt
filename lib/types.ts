@@ -48,7 +48,10 @@ export type ChatMessage = UIMessage<
   MessageMetadata,
   CustomUIDataTypes,
   ChatTools
->;
+> & {
+  // UI-only augmentation for model routing pill (attached via use-active-chat onData)
+  modelInfo?: { model: string; isOracle: boolean; reason?: string };
+};
 
 export type Attachment = {
   name: string;
