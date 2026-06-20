@@ -12,7 +12,10 @@ import {
   ToolInput,
   ToolOutput,
 } from "../ai-elements/tool";
-import { useDataStream } from "./data-stream-provider";
+import {
+  type ModelRoutingInfo,
+  useActiveChat,
+} from "@/hooks/use-active-chat";
 import { DocumentToolResult } from "./document";
 import { DocumentPreview } from "./document-preview";
 import { SparklesIcon } from "./icons";
@@ -20,6 +23,20 @@ import { MessageActions } from "./message-actions";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 import { Weather } from "./weather";
+
+function extractModelInfoFromParts(
+  parts: ChatMessage["parts"] | undefined
+): ModelRoutingInfo | undefined {
+  for (const part of parts ?? []) {
+    if ((part as { type?: string }).type === "data-model-used") {
+      const data = (part as { data?: ModelRoutingInfo }).data;
+      if (data?.model) {
+        return data;
+      }
+    }
+  }
+  return undefined;
+}
 
 const PurePreviewMessage = ({
   addToolApprovalResponse,
@@ -48,7 +65,7 @@ const PurePreviewMessage = ({
     (part) => part.type === "file"
   );
 
-  const { dataStream } = useDataStream();
+  const { oracleRouting, getModelInfoForMessage } = useActiveChat();
 
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
@@ -62,29 +79,13 @@ const PurePreviewMessage = ({
       part.type.startsWith("tool-")
   );
 
-  // Detect oracle thinking from transient data stream (for current response)
-  const hasOracleThinking = Array.isArray(dataStream) && dataStream.some(
-    (d: any) => d.type === "data-oracle-thinking"
-  );
+  const isThinking = isAssistant && isLoading && !hasAnyContent;
 
-  const isThinking =
-    isAssistant &&
-    isLoading &&
-    !hasAnyContent;
-
-  // Attached by use-active-chat on data-model-used
-  const attachedModelInfo = message.modelInfo;
-
-  // Also check most recent data-model-used in the (briefly available) stream as fallback
-  const latestModelUsed = Array.isArray(dataStream)
-    ? [...dataStream]
-        .reverse()
-        .find((d: any) => d.type === "data-model-used")?.data as
-        | { model: string; isOracle: boolean; reason?: string }
-        | undefined
-    : undefined;
-
-  const modelInfo = attachedModelInfo ?? (isLoading ? latestModelUsed : undefined);
+  const modelInfo =
+    getModelInfoForMessage(message.id) ??
+    extractModelInfoFromParts(message.parts) ??
+    message.modelInfo ??
+    (isLoading ? oracleRouting.pendingModelInfo : undefined);
 
   const attachments = attachmentsFromMessage.length > 0 && (
     <div
@@ -136,9 +137,7 @@ const PurePreviewMessage = ({
       return null;
     }
 
-    const partType = type as string;
-    if (partType === "text" || partType === "text-delta") {
-      const textContent = (part as any).text || (part as any).delta || "";
+    if (type === "text") {
       return (
         <MessageContent
           className={cn("text-[13px] leading-[1.65]", {
@@ -148,7 +147,7 @@ const PurePreviewMessage = ({
           data-testid="message-content"
           key={key}
         >
-          <MessageResponse>{sanitizeText(textContent)}</MessageResponse>
+          <MessageResponse>{sanitizeText(part.text)}</MessageResponse>
         </MessageContent>
       );
     }
@@ -344,7 +343,7 @@ const PurePreviewMessage = ({
   const content = isThinking ? (
     <div className="flex h-[calc(13px*1.65)] items-center text-[13px] leading-[1.65]">
       <Shimmer className="font-medium" duration={1}>
-        {hasOracleThinking ? "Routing..." : "Thinking..."}
+        {oracleRouting.isOracleThinking ? "Routing..." : "Thinking..."}
       </Shimmer>
     </div>
   ) : (
@@ -400,6 +399,8 @@ const PurePreviewMessage = ({
 export const PreviewMessage = PurePreviewMessage;
 
 export const ThinkingMessage = () => {
+  const { oracleRouting } = useActiveChat();
+
   return (
     <div
       className="group/message w-full"
@@ -415,7 +416,7 @@ export const ThinkingMessage = () => {
 
         <div className="flex h-[calc(13px*1.65)] items-center text-[13px] leading-[1.65]">
           <Shimmer className="font-medium" duration={1}>
-            Thinking...
+            {oracleRouting.isOracleThinking ? "Routing..." : "Thinking..."}
           </Shimmer>
         </div>
       </div>

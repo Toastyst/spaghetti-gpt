@@ -9,6 +9,7 @@ import {
   type Dispatch,
   type ReactNode,
   type SetStateAction,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -27,6 +28,17 @@ import type { Vote } from "@/lib/db/schema";
 import { ChatbotError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+
+export type ModelRoutingInfo = {
+  model: string;
+  isOracle: boolean;
+  reason?: string;
+};
+
+export type OracleRoutingState = {
+  isOracleThinking: boolean;
+  pendingModelInfo?: ModelRoutingInfo;
+};
 
 type ActiveChatContextValue = {
   chatId: string;
@@ -47,6 +59,8 @@ type ActiveChatContextValue = {
   setCurrentModelId: (id: string) => void;
   showCreditCardAlert: boolean;
   setShowCreditCardAlert: Dispatch<SetStateAction<boolean>>;
+  oracleRouting: OracleRoutingState;
+  getModelInfoForMessage: (messageId: string) => ModelRoutingInfo | undefined;
 };
 
 const ActiveChatContext = createContext<ActiveChatContextValue | null>(null);
@@ -58,8 +72,16 @@ function extractChatId(pathname: string): string | null {
 
 export function ActiveChatProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { dataStream: currentDataStream, setDataStream } = useDataStream();
+  const { setDataStream } = useDataStream();
   const { mutate } = useSWRConfig();
+
+  const [oracleRouting, setOracleRouting] = useState<OracleRoutingState>({
+    isOracleThinking: false,
+  });
+  const pendingModelInfoRef = useRef<ModelRoutingInfo | undefined>(undefined);
+  const modelInfoByMessageIdRef = useRef<Record<string, ModelRoutingInfo>>({});
+  const messagesRef = useRef<ChatMessage[]>([]);
+  const [modelInfoVersion, setModelInfoVersion] = useState(0);
 
   const chatIdFromUrl = extractChatId(pathname);
   const isNewChat = !chatIdFromUrl;
@@ -152,52 +174,38 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       },
     }),
     onData: (dataPart) => {
-      // Reset data stream at start of each response (on first data event) to prevent old events (e.g. previous oracle-thinking) from lingering and affecting hasOracleThinking / UI for normal prompts.
-      if (dataPart.type === "data-oracle-thinking" || dataPart.type === "data-model-used") {
-        setDataStream([dataPart]);
-      } else {
-        setDataStream((ds) => (ds ? [...ds, dataPart] : [dataPart]));
+      // Oracle routing events use a separate channel so DataStreamHandler can follow the
+      // template pattern (consume artifact deltas, then clear the stream).
+      if (dataPart.type === "data-oracle-thinking") {
+        pendingModelInfoRef.current = undefined;
+        setOracleRouting({ isOracleThinking: true });
+        return;
       }
+
+      if (dataPart.type === "data-model-used") {
+        const raw = dataPart.data;
+        if (
+          !raw ||
+          typeof raw !== "object" ||
+          !("model" in raw) ||
+          typeof (raw as ModelRoutingInfo).model !== "string"
+        ) {
+          return;
+        }
+        const modelInfo = raw as ModelRoutingInfo;
+        pendingModelInfoRef.current = modelInfo;
+        setOracleRouting({
+          isOracleThinking: false,
+          pendingModelInfo: modelInfo,
+        });
+        return;
+      }
+
+      setDataStream((ds) => (ds ? [...ds, dataPart] : [dataPart]));
     },
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
-
-      // After streaming completes, snapshot the model info from the (preserved) data events
-      // and attach it to the just-finished assistant message. This keeps the pill visible
-      // without mutating state *during* streaming (which was causing duplicate/empty messages).
-      const lastModelUsed = Array.isArray(currentDataStream)
-        ? [...currentDataStream]
-            .reverse()
-            .find((d: any) => d.type === "data-model-used")?.data as
-            | { model: string; isOracle: boolean; reason?: string }
-            | undefined
-        : undefined;
-
-      if (lastModelUsed && lastModelUsed.model) {
-        setMessages((current) => {
-          const lastAssistantIndex = [...current]
-            .map((m, i) => ({ m, i }))
-            .reverse()
-            .find(({ m }) => m.role === "assistant")?.i;
-
-          if (lastAssistantIndex != null) {
-            const targetId = current[lastAssistantIndex].id;
-            const existing = (current[lastAssistantIndex] as any).modelInfo;
-            if (existing) return current;
-
-            return current.map((msg) =>
-              msg.id === targetId
-                ? {
-                    ...msg,
-                    // UI-only augmentation for the model pill
-                    modelInfo: lastModelUsed,
-                  }
-                : msg
-            );
-          }
-          return current;
-        });
-      }
+      setDataStream([]);
     },
     onError: (error) => {
       if (error instanceof ChatbotError) {
@@ -222,14 +230,22 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
     if (loadedChatIds.current.has(chatId)) {
+      return;
+    }
+    // Never overwrite live streaming state with a partial DB snapshot.
+    if (status === "streaming" || status === "submitted") {
       return;
     }
     if (chatData?.messages) {
       loadedChatIds.current.add(chatId);
       setMessages(chatData.messages);
     }
-  }, [chatId, chatData?.messages, setMessages]);
+  }, [chatId, chatData?.messages, setMessages, status]);
 
   const prevChatIdRef = useRef(chatId);
   useEffect(() => {
@@ -288,6 +304,45 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
     { revalidateOnFocus: false }
   );
 
+  // Lifecycle: reset on new request; attach model pill after stream completes.
+  const prevStatusRef = useRef(status);
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+
+    if (prev !== "submitted" && status === "submitted") {
+      pendingModelInfoRef.current = undefined;
+      setOracleRouting({ isOracleThinking: false });
+      setDataStream([]);
+    }
+
+    if (prev === "streaming" && status === "ready") {
+      const modelInfo = pendingModelInfoRef.current;
+      const lastAssistant = [...messagesRef.current]
+        .reverse()
+        .find((m) => m.role === "assistant");
+
+      if (modelInfo?.model && lastAssistant) {
+        modelInfoByMessageIdRef.current[lastAssistant.id] = modelInfo;
+        setModelInfoVersion((v) => v + 1);
+      }
+
+      pendingModelInfoRef.current = undefined;
+      setOracleRouting((current) => ({
+        ...current,
+        isOracleThinking: false,
+        pendingModelInfo: undefined,
+      }));
+    }
+
+    prevStatusRef.current = status;
+  }, [status, setDataStream]);
+
+  const getModelInfoForMessage = useCallback(
+    (messageId: string) => modelInfoByMessageIdRef.current[messageId],
+    // modelInfoVersion bumps when a new pill is stored
+    [modelInfoVersion]
+  );
+
   const value = useMemo<ActiveChatContextValue>(
     () => ({
       chatId,
@@ -308,6 +363,8 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       setCurrentModelId,
       showCreditCardAlert,
       setShowCreditCardAlert,
+      oracleRouting,
+      getModelInfoForMessage,
     }),
     [
       chatId,
@@ -326,6 +383,8 @@ export function ActiveChatProvider({ children }: { children: ReactNode }) {
       votes,
       currentModelId,
       showCreditCardAlert,
+      oracleRouting,
+      getModelInfoForMessage,
     ]
   );
 

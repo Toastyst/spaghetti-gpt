@@ -223,6 +223,8 @@ export async function POST(request: Request) {
 
     const modelMessages = await convertToModelMessages(uiMessages);
 
+    let persistedModelInfo: { model: string; isOracle: boolean } | null = null;
+
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
@@ -248,9 +250,11 @@ export async function POST(request: Request) {
           }
         }
 
+        persistedModelInfo = { model: modelDisplayName, isOracle: isOracleRouted };
+
         dataStream.write({
           type: "data-model-used",
-          data: { model: modelDisplayName, isOracle: isOracleRouted },
+          data: persistedModelInfo,
         } as any);
 
         const activeModelConfig = chatModels.find((m) => m.id === activeModelId);
@@ -327,13 +331,33 @@ export async function POST(request: Request) {
       },
       generateId: generateUUID,
       onFinish: async ({ messages: finishedMessages }) => {
+        const withModelPart = (parts: ChatMessage["parts"]) => {
+          if (!persistedModelInfo) {
+            return parts;
+          }
+          const alreadyStored = parts.some(
+            (part) => (part as { type?: string }).type === "data-model-used"
+          );
+          if (alreadyStored) {
+            return parts;
+          }
+          return [
+            ...parts,
+            {
+              type: "data-model-used",
+              data: persistedModelInfo,
+            },
+          ] as ChatMessage["parts"];
+        };
+
         if (isToolApprovalFlow) {
           for (const finishedMsg of finishedMessages) {
+            const parts = withModelPart(finishedMsg.parts);
             const existingMsg = uiMessages.find((m) => m.id === finishedMsg.id);
             if (existingMsg) {
               await updateMessage({
                 id: finishedMsg.id,
-                parts: finishedMsg.parts,
+                parts,
               });
             } else {
               await saveMessages({
@@ -341,7 +365,7 @@ export async function POST(request: Request) {
                   {
                     id: finishedMsg.id,
                     role: finishedMsg.role,
-                    parts: finishedMsg.parts,
+                    parts,
                     createdAt: new Date(),
                     attachments: [],
                     chatId: id,
@@ -355,7 +379,7 @@ export async function POST(request: Request) {
             messages: finishedMessages.map((currentMessage) => ({
               id: currentMessage.id,
               role: currentMessage.role,
-              parts: currentMessage.parts,
+              parts: withModelPart(currentMessage.parts),
               createdAt: new Date(),
               attachments: [],
               chatId: id,
