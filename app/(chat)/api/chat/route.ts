@@ -1,5 +1,6 @@
+  execute: async ({ writer: dataStream }) => {
     let activeModelId = chatModel;
-    let modelDisplayName = chatModel; // fallback
+    let modelDisplayName = "Unknown";
     let isOracleRouted = false;
 
     if (chatModel === "spaghetti-oracle") {
@@ -15,12 +16,11 @@
         isOracleRouted = true;
       }
     } else {
-      // Normal model selection - try to find friendly name
-      const modelInfo = chatModels.find(m => m.id === chatModel);
+      const modelInfo = chatModels.find((m) => m.id === chatModel);
       modelDisplayName = modelInfo?.name || chatModel;
     }
 
-    // Send model info to frontend for the bottom pill
+    // Send model info so frontend can show the pill at the bottom
     dataStream.write({
       type: "data-model-used",
       data: {
@@ -28,3 +28,63 @@
         isOracle: isOracleRouted,
       },
     });
+
+    const result = streamText({
+      model: getLanguageModel(activeModelId),
+      system: systemPrompt({ requestHints, supportsTools }),
+      messages: modelMessages,
+      stopWhen: stepCountIs(5),
+      experimental_activeTools:
+        isReasoningModel && !supportsTools
+          ? []
+          : [
+              "getWeather",
+              "createDocument",
+              "editDocument",
+              "updateDocument",
+              "requestSuggestions",
+            ],
+      providerOptions: {
+        ...(modelConfig?.reasoningEffort && {
+          openai: { reasoningEffort: modelConfig.reasoningEffort },
+        }),
+      },
+      tools: {
+        getWeather,
+        createDocument: createDocument({
+          session,
+          dataStream,
+          modelId: chatModel,
+        }),
+        editDocument: editDocument({ dataStream, session }),
+        updateDocument: updateDocument({
+          session,
+          dataStream,
+          modelId: chatModel,
+        }),
+        requestSuggestions: requestSuggestions({
+          session,
+          dataStream,
+          modelId: chatModel,
+        }),
+      },
+      experimental_telemetry: {
+        isEnabled: isProductionEnvironment,
+        functionId: "stream-text",
+      },
+    });
+
+    dataStream.merge(
+      result.toUIMessageStream({ sendReasoning: isReasoningModel })
+    );
+
+    if (titlePromise) {
+      try {
+        const title = await titlePromise;
+        dataStream.write({ type: "data-chat-title", data: title });
+        updateChatTitleById({ chatId: id, title });
+      } catch (_) {
+        /* non-fatal */
+      }
+    }
+  },
