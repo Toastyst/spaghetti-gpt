@@ -1,38 +1,37 @@
 import { generateText } from "ai";
 import { getLanguageModel } from "./providers";
-import { chatModels, type ChatModel } from "./models";
+import { chatModels } from "./models";
 
 // The fast decider model (high throughput)
 const DECIDER_MODEL_ID = "nvidia/nemotron-3-nano-30b-a3b:free" as const;
 
-// Mapping from friendly/short names (what the LLM might output) to exact OpenRouter model IDs
-const MODEL_ID_MAP: Record<string, string> = {
-  // Friendly names that might come from LLM
-  "Nex-N2-Pro": "nex-agi/nex-n2-pro:free",
-  "Nex N2 Pro": "nex-agi/nex-n2-pro:free",
-  "nex-n2-pro": "nex-agi/nex-n2-pro:free",
-  "Laguna": "poolside/laguna-xs.2:free",
-  "Laguna XS.2": "poolside/laguna-xs.2:free",
-  "Laguna M.1": "poolside/laguna-xs.2:free",
-  "Owl Alpha": "openai/gpt-oss-120b:free",
-  "Owl": "openai/gpt-oss-120b:free",
-  "Nemotron 3 Ultra": "openai/gpt-oss-120b:free",
-  "Nemotron 3 Super": "openai/gpt-oss-120b:free",
-  "Nemotron Ultra": "openai/gpt-oss-120b:free",
-  "Nemotron Nano": "nvidia/nemotron-3-nano-30b-a3b:free",
-  "Nano": "nvidia/nemotron-3-nano-30b-a3b:free",
-  "Gemma 4 31B": "google/gemma-4-31b-it:free",
-  "Gemma": "google/gemma-4-31b-it:free",
+// Mapping from friendly/short names → { id, friendlyName }
+const MODEL_MAP: Record<string, { id: string; friendlyName: string }> = {
+  "Nex-N2-Pro": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
+  "Nex N2 Pro": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
+  "nex-n2-pro": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
+  "Laguna": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
+  "Laguna XS.2": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
+  "Laguna M.1": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
+  "Owl Alpha": { id: "openai/gpt-oss-120b:free", friendlyName: "Owl Alpha" },
+  "Owl": { id: "openai/gpt-oss-120b:free", friendlyName: "Owl Alpha" },
+  "Nemotron 3 Ultra": { id: "openai/gpt-oss-120b:free", friendlyName: "Owl Alpha" },
+  "Nemotron 3 Super": { id: "openai/gpt-oss-120b:free", friendlyName: "Owl Alpha" },
+  "Nemotron Ultra": { id: "openai/gpt-oss-120b:free", friendlyName: "Owl Alpha" },
+  "Nemotron Nano": { id: "nvidia/nemotron-3-nano-30b-a3b:free", friendlyName: "Nemotron Nano" },
+  "Nano": { id: "nvidia/nemotron-3-nano-30b-a3b:free", friendlyName: "Nemotron Nano" },
+  "Gemma 4 31B": { id: "google/gemma-4-31b-it:free", friendlyName: "Gemma 4 31B" },
+  "Gemma": { id: "google/gemma-4-31b-it:free", friendlyName: "Gemma 4 31B" },
   // Direct full IDs
-  "nex-agi/nex-n2-pro:free": "nex-agi/nex-n2-pro:free",
-  "poolside/laguna-xs.2:free": "poolside/laguna-xs.2:free",
-  "openai/gpt-oss-120b:free": "openai/gpt-oss-120b:free",
-  "openai/gpt-oss-20b:free": "openai/gpt-oss-20b:free",
-  "google/gemma-4-31b-it:free": "google/gemma-4-31b-it:free",
-  "nvidia/nemotron-3-nano-30b-a3b:free": "nvidia/nemotron-3-nano-30b-a3b:free",
+  "nex-agi/nex-n2-pro:free": { id: "nex-agi/nex-n2-pro:free", friendlyName: "Nex-N2-Pro" },
+  "poolside/laguna-xs.2:free": { id: "poolside/laguna-xs.2:free", friendlyName: "Laguna XS.2" },
+  "openai/gpt-oss-120b:free": { id: "openai/gpt-oss-120b:free", friendlyName: "Owl Alpha" },
+  "openai/gpt-oss-20b:free": { id: "openai/gpt-oss-20b:free", friendlyName: "gpt-oss-20b" },
+  "google/gemma-4-31b-it:free": { id: "google/gemma-4-31b-it:free", friendlyName: "Gemma 4 31B" },
+  "nvidia/nemotron-3-nano-30b-a3b:free": { id: "nvidia/nemotron-3-nano-30b-a3b:free", friendlyName: "Nemotron Nano" },
 };
 
-const SAFE_DEFAULT = "openai/gpt-oss-120b:free";
+const SAFE_DEFAULT = { id: "openai/gpt-oss-120b:free", friendlyName: "Owl Alpha" };
 
 const ROUTER_SYSTEM_PROMPT = `You are an expert model router for a free AI chat system called Spaghetti-gpt.
 
@@ -59,7 +58,7 @@ Respond with ONLY this exact line, nothing else before or after:
 Model: <one of the exact model IDs listed above>
 `;
 
-export async function resolveSpaghettiOracle(messages: any[]): Promise<string> {
+export async function resolveSpaghettiOracle(messages: any[]): Promise<{ id: string; friendlyName: string }> {
   try {
     const lastUser = [...messages].reverse().find(m => m.role === 'user');
     let userPrompt = 'General request';
@@ -88,17 +87,18 @@ export async function resolveSpaghettiOracle(messages: any[]): Promise<string> {
     const match = text.match(/Model:\s*([\w\/\-:.@]+)/i);
     let raw = match ? match[1].trim() : '';
 
-    let chosen = MODEL_ID_MAP[raw] || raw;
+    const mapped = MODEL_MAP[raw] || MODEL_MAP[Object.keys(MODEL_MAP).find(k => raw.includes(k)) || ''];
+    let result = mapped || SAFE_DEFAULT;
 
-    const isValid = chatModels.some(m => m.id === chosen);
-
+    // Final validation
+    const isValid = chatModels.some(m => m.id === result.id);
     if (!isValid) {
-      console.warn(`[Oracle] Invalid or unavailable model chosen: ${raw} -> ${chosen}. Falling back.`);
-      chosen = SAFE_DEFAULT;
+      console.warn(`[Oracle] Invalid model chosen: ${raw}. Falling back.`);
+      result = SAFE_DEFAULT;
     }
 
-    console.log(`[Spaghetti Oracle] Routed to: ${chosen} (raw LLM output: ${raw})`);
-    return chosen;
+    console.log(`[Spaghetti Oracle] Routed to: ${result.friendlyName} (${result.id})`);
+    return result;
 
   } catch (err) {
     console.error('[Spaghetti Oracle] Resolution error, using safe default:', err);
